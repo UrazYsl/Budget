@@ -60,9 +60,13 @@ def update_category(category_id: int, new_name: str, db: Session):
     db.commit()
     return 1
 
-def create_transaction(tx, db: Session):
-    def create_category(transaction: TransactionCreate, db: Session) -> Transaction:
-    transaction = Transaction(name=transaction.name)
+def create_transaction(tx, db: Session) -> Transaction:
+    transaction = Transaction(
+        date=tx.date,
+        amount=tx.amount,
+        account_id=tx.account_id,
+        category_id=tx.category_id,
+    )
     db.add(transaction)
     db.commit()
     db.refresh(transaction)

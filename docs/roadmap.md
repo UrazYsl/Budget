@@ -92,7 +92,7 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 - [X] Create category
 - [X] List categories
 - [X] Delete category
-- [ ] Update category (rename)
+- [X] Update category (rename)
 
 ### Step 3: Transactions API (Make usable)
 - [X] Create transaction

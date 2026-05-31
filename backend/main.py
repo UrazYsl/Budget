@@ -66,6 +66,13 @@ def create_category_endpoint(category: CategoryCreate, db: Session = Depends(get
 def read_categories_endpoint(db: Session = Depends(get_db)):
     return crud.read_categories(db)
 
+@app.put("/categories/{category_id}")
+def update_category_endpoint(category_id: int, new_name: str, db: Session = Depends(get_db)):
+    updated = crud.update_category(category_id, new_name, db)
+    if updated == 0:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return {"updated": updated}
+
 @app.delete("/categories/{category_id}")
 def delete_category_endpoint(category_id: int, db: Session = Depends(get_db)):
     deleted = crud.delete_category(category_id, db)

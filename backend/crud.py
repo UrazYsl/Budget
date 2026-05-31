@@ -82,6 +82,17 @@ def read_transactions(db: Session):
     )
     return result.mappings().all()
 
+def update_transaction(tx_id: int, tx, db: Session) -> int:
+    transaction = db.query(Transaction).filter(Transaction.id == tx_id).first()
+    if transaction is None:
+        return 0
+    transaction.date = tx.date
+    transaction.amount = tx.amount
+    transaction.account_id = tx.account_id
+    transaction.category_id = tx.category_id
+    db.commit()
+    return 1
+
 def delete_transaction(tx_id: int, db: Session):
     result = db.execute(
         text("DELETE FROM transactions WHERE id = :id"),

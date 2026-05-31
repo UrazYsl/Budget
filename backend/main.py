@@ -89,6 +89,13 @@ def create_transaction_endpoint(tx: TransactionCreate, db: Session = Depends(get
 def read_transactions_endpoint(db: Session = Depends(get_db)):
     return crud.read_transactions(db)
 
+@app.put("/transactions/{tx_id}")
+def update_transaction_endpoint(tx_id: int, tx: TransactionCreate, db: Session = Depends(get_db)):
+    updated = crud.update_transaction(tx_id, tx, db)
+    if updated == 0:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return {"updated": updated}
+
 @app.delete("/transactions/{tx_id}")
 def delete_transaction_endpoint(tx_id: int, db: Session = Depends(get_db)):
     deleted = crud.delete_transaction(tx_id, db)

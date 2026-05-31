@@ -98,7 +98,7 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 - [X] Create transaction
 - [X] List transactions
 - [X] Delete transaction
-- [ ] Update transaction
+- [X] Update transaction
 - [ ] Add filters to list transactions (account/category/date range)
 - [ ] Add pagination (limit/offset)
 

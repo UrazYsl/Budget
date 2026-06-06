@@ -20,6 +20,7 @@ A full-stack personal budgeting app with a FastAPI backend and an Android client
 
 OPTIONALS:
 - pytest
+- python-dotenv (required for running tests outside Docker)
 
 ## Prerequisites
 

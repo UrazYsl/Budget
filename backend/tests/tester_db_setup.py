@@ -1,8 +1,11 @@
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from dotenv import load_dotenv
+load_dotenv()
 from typing import Type
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import create_engine, text
 from models import Base, Category, Account
-import os
 
 #similar to seed.py, but for the testing database
 def setup_db(db: Session) -> None:

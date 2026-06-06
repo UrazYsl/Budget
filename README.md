@@ -18,20 +18,43 @@ A full-stack personal budgeting app with a FastAPI backend and an Android client
 - psycopg[binary]
 - alembic
 
+OPTIONALS:
+- pytest
 
 ## Prerequisites
-- Docker Desktop (Windows/macOS) or Docker Engine (Linux)
-- Docker must be running before executing `docker compose up`
-- You do not need to log into Docker or create any database manually. 
 
-If you get:
-permission denied while trying to connect to the Docker daemon socket
+### Installing Docker
 
-Run:
+**Windows**
+1. Download and install [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/)
+2. Start Docker Desktop and wait for it to finish loading before running any commands
 
+**macOS**
+1. Download and install [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/)
+2. Start Docker Desktop and wait for it to finish loading
+
+**Linux (Ubuntu/Debian)**
+```bash
+sudo apt install docker.io docker-compose-v2
 sudo usermod -aG docker $USER
 newgrp docker
+```
 
+> After installing, close and reopen your terminal (or run `newgrp docker`) before running `docker compose`.
+
+- Docker must be running before executing `docker compose up`
+- You do not need to log into Docker or create any database manually.
+
+If you get:
+```
+permission denied while trying to connect to the Docker daemon socket
+```
+
+Run:
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
 Or log out and log back in.
 
 
@@ -104,6 +127,33 @@ docker compose down
 docker compose down -v
 docker compose up --build
 ```
+
+## Running Tests
+
+Tests use a separate `budgeting_test` database inside the same PostgreSQL container.
+
+**One-time setup** — create the test database (only needed once, survives restarts):
+```bash
+docker exec budgeting-app-db-1 psql -U postgres -c "CREATE DATABASE budgeting_test;"
+```
+
+**Start** (same as normal — tests share the running container):
+```bash
+docker compose up -d
+```
+
+**Run tests:**
+```bash
+cd backend
+python -m pytest tests/ -v
+```
+
+**Stop:**
+```bash
+docker compose down
+```
+
+> If you wipe the volume with `docker compose down -v`, you'll need to recreate the test database again.
 
 See [docs/roadmap.md](docs/roadmap.md) for the full development plan.
 

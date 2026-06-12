@@ -25,6 +25,7 @@ def seed_items(db: Session, model: Type[Base], item: str) -> None:
 
 def get_test_session():
     engine = create_engine(os.getenv("TEST_DATABASE_URL"))
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     return Session()

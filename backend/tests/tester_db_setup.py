@@ -28,7 +28,9 @@ def get_test_session():
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
-    return Session()
+    session = Session()
+    setup_db(session)
+    return session
 
 if __name__ == "__main__":
     session = get_test_session()

@@ -1,9 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from typing import Type
 import pytest
 from tester_db_setup import get_test_session
-from sqlalchemy.orm import Session, sessionmaker
 import crud
 import schemas
 from datetime import date
@@ -11,9 +9,10 @@ from models import RecurringTransaction
 
 session = get_test_session()
 
-def test_read_accounts_empty():
+# get_test_session always seeds 4 accounts, so we check for exactly 4 instead of empty
+def test_read_accounts_seeded():
     accounts = crud.read_accounts(session)
-    assert accounts == []
+    assert len(accounts) == 4
 
 def test_create_account():
     account = crud.create_account(schemas.AccountCreate(name="Test Account"), session)
@@ -71,3 +70,5 @@ def test_delete_account_with_recurring_transactions():
     assert result == 1
     deleted_account = session.query(crud.Account).filter(crud.Account.id == account.id).first()
     assert deleted_account is None
+    deleted_rtx = session.query(RecurringTransaction).filter(RecurringTransaction.account_id == account.id).first()
+    assert deleted_rtx is None

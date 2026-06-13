@@ -59,12 +59,13 @@ class Transaction(Base):
     )
 
     # category delete -> set default (Misc)
-    # IMPORTANT: the DB column must have a DEFAULT set to Misc id in SQL
+    # Misc is always seeded first so it gets id=1; SET DEFAULT falls back to it on category delete
     category_id = Column(
         Integer,
         ForeignKey("categories.id", ondelete="SET DEFAULT"),
         nullable=False,
         index=True,
+        server_default='1',
     )
 
     account = relationship("Account", back_populates="transactions")

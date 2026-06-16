@@ -3,16 +3,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import crud
 import schemas
 import pytest
-from tester_db_setup import get_test_session
 from datetime import date
 from models import RecurringTransaction
-session = get_test_session()
 
-def test_read_recurring_transactions_empty():
+def test_read_recurring_transactions_empty(session):
     recurring_transactions = crud.read_recurring_transactions(session)
     assert len(recurring_transactions) == 0
 
-def test_create_recurring_transaction():
+def test_create_recurring_transaction(session):
     account = crud.create_account(schemas.AccountCreate(name="Test Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Test Category"), session)
     rtx = crud.create_recurring_transaction(
@@ -30,7 +28,7 @@ def test_create_recurring_transaction():
     assert rtx["category_id"] == category.id
     assert rtx["recurring_interval"] == "monthly"
 
-def test_read_recurring_transactions():
+def test_read_recurring_transactions(session):
     account = crud.create_account(schemas.AccountCreate(name="Read Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Read Category"), session)
     rtx = crud.create_recurring_transaction(
@@ -46,7 +44,7 @@ def test_read_recurring_transactions():
     all_rtx = crud.read_recurring_transactions(session)
     assert any(r["id"] == rtx["id"] for r in all_rtx)
 
-def test_create_recurring_transaction_invalid_account():
+def test_create_recurring_transaction_invalid_account(session):
     category = crud.create_category(schemas.CategoryCreate(name="Invalid Account Category"), session)
     with pytest.raises(Exception):
         crud.create_recurring_transaction(
@@ -61,7 +59,7 @@ def test_create_recurring_transaction_invalid_account():
         )
     session.rollback()
 
-def test_create_recurring_transaction_invalid_category():
+def test_create_recurring_transaction_invalid_category(session):
     account = crud.create_account(schemas.AccountCreate(name="Invalid Category Account"), session)
     with pytest.raises(Exception):
         crud.create_recurring_transaction(
@@ -76,7 +74,7 @@ def test_create_recurring_transaction_invalid_category():
         )
     session.rollback()
 
-def test_create_recurring_transaction_invalid_interval():
+def test_create_recurring_transaction_invalid_interval(session):
     account = crud.create_account(schemas.AccountCreate(name="Invalid Interval Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Invalid Interval Category"), session)
     with pytest.raises(Exception):
@@ -91,7 +89,7 @@ def test_create_recurring_transaction_invalid_interval():
             session
         )
 
-def test_create_recurring_transaction_negative_amount():
+def test_create_recurring_transaction_negative_amount(session):
     account = crud.create_account(schemas.AccountCreate(name="Negative Amount Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Negative Amount Category"), session)
     with pytest.raises(Exception):
@@ -106,7 +104,7 @@ def test_create_recurring_transaction_negative_amount():
             session
         )
 
-def test_create_recurring_transaction_zero_amount():
+def test_create_recurring_transaction_zero_amount(session):
     account = crud.create_account(schemas.AccountCreate(name="Zero Amount Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Zero Amount Category"), session)
     with pytest.raises(Exception):
@@ -121,7 +119,7 @@ def test_create_recurring_transaction_zero_amount():
             session
         )
 
-def test_delete_recurring_transaction():
+def test_delete_recurring_transaction(session):
     account = crud.create_account(schemas.AccountCreate(name="Delete Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Delete Category"), session)
     rtx = crud.create_recurring_transaction(
@@ -141,11 +139,11 @@ def test_delete_recurring_transaction():
     deleted = session.query(RecurringTransaction).filter(RecurringTransaction.id == rtx_id).first()
     assert deleted is None
 
-def test_delete_nonexistent_recurring_transaction():
+def test_delete_nonexistent_recurring_transaction(session):
     result = crud.delete_recurring_transaction(9999, session)
     assert result == 0
 
-def test_delete_account_cascades_recurring_transactions():
+def test_delete_account_cascades_recurring_transactions(session):
     account = crud.create_account(schemas.AccountCreate(name="Cascade Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Cascade Category"), session)
     rtx = crud.create_recurring_transaction(
@@ -165,7 +163,7 @@ def test_delete_account_cascades_recurring_transactions():
     deleted = session.query(RecurringTransaction).filter(RecurringTransaction.id == rtx_id).first()
     assert deleted is None
 
-def test_delete_category_cascades_recurring_transactions():
+def test_delete_category_cascades_recurring_transactions(session):
     account = crud.create_account(schemas.AccountCreate(name="Category Cascade Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Category Cascade Category"), session)
     rtx = crud.create_recurring_transaction(

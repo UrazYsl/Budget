@@ -23,7 +23,7 @@ def test_read_transactions_seeded(session):
         session
     )
     transactions = crud.read_transactions(session)
-    assert any(t["id"] == tx.id for t in transactions)
+    assert any(t.id == tx.id for t in transactions)
 
 def test_create_transaction(session):
     account = crud.create_account(schemas.AccountCreate(name="Test Account"), session)

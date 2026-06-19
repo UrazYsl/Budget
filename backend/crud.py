@@ -1,5 +1,5 @@
+from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 from models import Account, Category, Transaction, RecurringTransaction
 from schemas import AccountCreate, CategoryCreate
 
@@ -11,11 +11,10 @@ def create_account(account: AccountCreate, db: Session) -> Account:
     return account
 
 def read_accounts(db: Session) -> list[Account]:
-    return db.query(Account).order_by(Account.id).all()
+    return db.scalars(select(Account).order_by(Account.id)).all()
 
 def delete_account(account_id: int, db: Session) -> int:
-    # It will ask for confirmation in the UI, so we can assume the user knows what they're doing.
-    account = db.query(Account).filter(Account.id == account_id).first()
+    account = db.get(Account, account_id)
     if account is None:
         return 0
     _check_recurring_transactions(account_id, db)
@@ -24,7 +23,7 @@ def delete_account(account_id: int, db: Session) -> int:
     return 1
 
 def update_account(account_id: int, new_name: str, db: Session) -> int:
-    account = db.query(Account).filter(Account.id == account_id).first()
+    account = db.get(Account, account_id)
     if account is None:
         return 0
     account.name = new_name
@@ -39,24 +38,23 @@ def create_category(category: CategoryCreate, db: Session) -> Category:
     return category
 
 def read_categories(db: Session) -> list[Category]:
-    return db.query(Category).order_by(Category.id).all()
+    return db.scalars(select(Category).order_by(Category.id)).all()
 
 def delete_category(category_id: int, db: Session):
-    # It will ask for confirmation in the UI, so we can assume the user knows what they're doing.
-    # Will also change the category of any transactions with this category to misc, so we don't have to worry about orphaned transactions.
-    result = db.execute(
-        text("DELETE FROM categories WHERE id = :id"),
-        {"id": category_id},
-    )
+    # passive_deletes=True on the relationship means SQLAlchemy won't touch FK rows;
+    # the DB ON DELETE SET DEFAULT fires and reassigns transactions to Misc.
+    category = db.get(Category, category_id)
+    if category is None:
+        return 0
+    db.delete(category)
     db.commit()
-    return result.rowcount
+    return 1
 
 def update_category(category_id: int, new_name: str, db: Session):
-    category = db.query(Category).filter(Category.id == category_id).first()
+    category = db.get(Category, category_id)
     if category is None:
         return 0
     category.name = new_name
-
     db.commit()
     return 1
 
@@ -72,18 +70,14 @@ def create_transaction(tx, db: Session) -> Transaction:
     db.refresh(transaction)
     return transaction
 
-def read_transactions(db: Session):
-    result = db.execute(
-        text("""
-            SELECT id, date, amount, account_id, category_id
-            FROM transactions
-            ORDER BY date DESC, id DESC
-        """)
-    )
-    return result.mappings().all()
+def read_transactions(db: Session) -> list[Transaction]:
+    return db.scalars(
+        select(Transaction)
+        .order_by(Transaction.date.desc(), Transaction.id.desc())
+    ).all()
 
 def update_transaction(tx_id: int, tx, db: Session) -> int:
-    transaction = db.query(Transaction).filter(Transaction.id == tx_id).first()
+    transaction = db.get(Transaction, tx_id)
     if transaction is None:
         return 0
     transaction.date = tx.date
@@ -94,53 +88,47 @@ def update_transaction(tx_id: int, tx, db: Session) -> int:
     return 1
 
 def delete_transaction(tx_id: int, db: Session):
-    result = db.execute(
-        text("DELETE FROM transactions WHERE id = :id"),
-        {"id": tx_id},
-    )
+    result = db.execute(delete(Transaction).where(Transaction.id == tx_id))
     db.commit()
     return result.rowcount
 
-
-def create_recurring_transaction(rtx, db: Session):
-    result = db.execute(
-        text("""
-            INSERT INTO recurring_transactions
-                (amount, recurring_interval, next_run_date, account_id, category_id)
-            VALUES (:amount, :recurring_interval, :next_run_date, :account_id, :category_id)
-            RETURNING id, amount, recurring_interval, next_run_date, account_id, category_id
-        """),
-        {
-            "amount": rtx.amount,
-            "recurring_interval": rtx.recurring_interval.value,
-            "next_run_date": rtx.next_run_date,
-            "account_id": rtx.account_id,
-            "category_id": rtx.category_id,
-        },
+def create_recurring_transaction(rtx, db: Session) -> RecurringTransaction:
+    rtx_obj = RecurringTransaction(
+        amount=rtx.amount,
+        recurring_interval=rtx.recurring_interval.value,
+        next_run_date=rtx.next_run_date,
+        account_id=rtx.account_id,
+        category_id=rtx.category_id,
     )
+    db.add(rtx_obj)
     db.commit()
-    return result.mappings().one()
+    db.refresh(rtx_obj)
+    return rtx_obj
 
-def read_recurring_transactions(db: Session):
-    result = db.execute(
-        text("""
-            SELECT id, amount, recurring_interval, next_run_date, account_id, category_id
-            FROM recurring_transactions
-            ORDER BY next_run_date ASC, id ASC
-        """)
-    )
-    return result.mappings().all()
+def read_recurring_transactions(db: Session) -> list[RecurringTransaction]:
+    return db.scalars(
+        select(RecurringTransaction)
+        .order_by(RecurringTransaction.next_run_date.asc(), RecurringTransaction.id.asc())
+    ).all()
 
 def _check_recurring_transactions(account_id: int, db: Session) -> None:
-    # Check if there are any recurring transactions associated with this account. If there are, we can't delete the account.
-    transactions = db.query(RecurringTransaction).filter(RecurringTransaction.account_id == account_id).all()
-    for tx in transactions:
-        db.delete(tx)
+    recurring = db.scalars(
+        select(RecurringTransaction).where(RecurringTransaction.account_id == account_id)
+    ).all()
+    for rtx in recurring:
+        db.delete(rtx)
 
 def delete_recurring_transaction(rtx_id: int, db: Session):
-    result = db.execute(
-        text("DELETE FROM recurring_transactions WHERE id = :id"),
-        {"id": rtx_id},
-    )
+    result = db.execute(delete(RecurringTransaction).where(RecurringTransaction.id == rtx_id))
     db.commit()
     return result.rowcount
+
+
+### FILTERS ###
+
+def read_transactions_by_account(account_id: int, db: Session) -> list[Transaction]:
+    return db.scalars(
+        select(Transaction)
+        .where(Transaction.account_id == account_id)
+        .order_by(Transaction.date.desc(), Transaction.id.desc())
+    ).all()

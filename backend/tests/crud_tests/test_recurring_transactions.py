@@ -23,10 +23,10 @@ def test_create_recurring_transaction(session):
         ),
         session
     )
-    assert rtx["amount"] == 100.0
-    assert rtx["account_id"] == account.id
-    assert rtx["category_id"] == category.id
-    assert rtx["recurring_interval"] == "monthly"
+    assert rtx.amount == 100.0
+    assert rtx.account_id == account.id
+    assert rtx.category_id == category.id
+    assert rtx.recurring_interval == "monthly"
 
 def test_read_recurring_transactions(session):
     account = crud.create_account(schemas.AccountCreate(name="Read Account"), session)
@@ -42,7 +42,7 @@ def test_read_recurring_transactions(session):
         session
     )
     all_rtx = crud.read_recurring_transactions(session)
-    assert any(r["id"] == rtx["id"] for r in all_rtx)
+    assert any(r.id == rtx.id for r in all_rtx)
 
 def test_create_recurring_transaction_invalid_account(session):
     category = crud.create_category(schemas.CategoryCreate(name="Invalid Account Category"), session)
@@ -132,7 +132,7 @@ def test_delete_recurring_transaction(session):
         ),
         session
     )
-    rtx_id = rtx["id"]
+    rtx_id = rtx.id
     result = crud.delete_recurring_transaction(rtx_id, session)
     session.expire_all()
     assert result == 1
@@ -156,7 +156,7 @@ def test_delete_account_cascades_recurring_transactions(session):
         ),
         session
     )
-    rtx_id = rtx["id"]
+    rtx_id = rtx.id
     account_id = account.id
     crud.delete_account(account_id, session)
     session.expire_all()
@@ -176,7 +176,7 @@ def test_delete_category_cascades_recurring_transactions(session):
         ),
         session
     )
-    rtx_id = rtx["id"]
+    rtx_id = rtx.id
     category_id = category.id
     crud.delete_category(category_id, session)
     session.expire_all()

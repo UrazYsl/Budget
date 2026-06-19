@@ -1,3 +1,4 @@
+from datetime import date
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 from models import Account, Category, Transaction, RecurringTransaction
@@ -125,10 +126,22 @@ def delete_recurring_transaction(rtx_id: int, db: Session):
 
 
 ### FILTERS ###
-
-def read_transactions_by_account(account_id: int, db: Session) -> list[Transaction]:
-    return db.scalars(
-        select(Transaction)
-        .where(Transaction.account_id == account_id)
-        .order_by(Transaction.date.desc(), Transaction.id.desc())
-    ).all()
+# The parameters are optional, to allow for combinations of filters. 
+# If a parameter is None, it won't be applied.
+def read_transactions_filtered(
+    db: Session,
+    account_id: int | None = None,
+    category_id: int | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> list[Transaction]:
+    stmt = select(Transaction)
+    if account_id is not None:
+        stmt = stmt.where(Transaction.account_id == account_id)
+    if category_id is not None:
+        stmt = stmt.where(Transaction.category_id == category_id)
+    if start_date is not None:
+        stmt = stmt.where(Transaction.date >= start_date)
+    if end_date is not None:
+        stmt = stmt.where(Transaction.date <= end_date)
+    return db.scalars(stmt.order_by(Transaction.date.desc(), Transaction.id.desc())).all()

@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException
+from datetime import date
+from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from contextlib import asynccontextmanager
@@ -86,8 +87,16 @@ def create_transaction_endpoint(tx: TransactionCreate, db: Session = Depends(get
     return crud.create_transaction(tx, db)
 
 @app.get("/transactions", response_model=list[TransactionOut])
-def read_transactions_endpoint(db: Session = Depends(get_db)):
-    return crud.read_transactions(db)
+def read_transactions_endpoint(
+    account_id: int | None = None,
+    category_id: int | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    limit: int | None = Query(default=None, ge=1),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+):
+    return crud.read_transactions_filtered(db, account_id, category_id, start_date, end_date, limit, offset)
 
 @app.put("/transactions/{tx_id}")
 def update_transaction_endpoint(tx_id: int, tx: TransactionCreate, db: Session = Depends(get_db)):

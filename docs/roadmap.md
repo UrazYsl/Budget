@@ -99,8 +99,8 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 - [X] List transactions
 - [X] Delete transaction
 - [X] Update transaction
-- [ ] Add filters to list transactions (account/category/date range)
-- [ ] Add pagination (limit/offset)
+- [X] Add filters to list transactions (account/category/date range)
+- [X] Add pagination (limit/offset)
 
 ### Step 4: Recurring Transactions API (Finish)
 - [X] Create recurring transaction

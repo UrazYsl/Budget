@@ -18,7 +18,6 @@ def delete_account(account_id: int, db: Session) -> int:
     account = db.get(Account, account_id)
     if account is None:
         return 0
-    _check_recurring_transactions(account_id, db)
     db.delete(account)
     db.commit()
     return 1
@@ -112,13 +111,6 @@ def read_recurring_transactions(db: Session) -> list[RecurringTransaction]:
         .order_by(RecurringTransaction.next_run_date.asc(), RecurringTransaction.id.asc())
     ).all()
 
-def _check_recurring_transactions(account_id: int, db: Session) -> None:
-    recurring = db.scalars(
-        select(RecurringTransaction).where(RecurringTransaction.account_id == account_id)
-    ).all()
-    for rtx in recurring:
-        db.delete(rtx)
-
 def delete_recurring_transaction(rtx_id: int, db: Session):
     result = db.execute(delete(RecurringTransaction).where(RecurringTransaction.id == rtx_id))
     db.commit()
@@ -134,6 +126,8 @@ def read_transactions_filtered(
     category_id: int | None = None,
     start_date: date | None = None,
     end_date: date | None = None,
+    limit: int | None = None,
+    offset: int = 0,
 ) -> list[Transaction]:
     stmt = select(Transaction)
     if account_id is not None:
@@ -144,4 +138,7 @@ def read_transactions_filtered(
         stmt = stmt.where(Transaction.date >= start_date)
     if end_date is not None:
         stmt = stmt.where(Transaction.date <= end_date)
-    return db.scalars(stmt.order_by(Transaction.date.desc(), Transaction.id.desc())).all()
+    stmt = stmt.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(offset)
+    if limit is not None:
+        stmt = stmt.limit(limit)
+    return db.scalars(stmt).all()

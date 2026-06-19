@@ -340,3 +340,88 @@ def test_same_date_ordered_by_id_desc(session):
     results = crud.read_transactions_filtered(session, account_id=account.id)
     ids = [t.id for t in results]
     assert ids.index(tx_third.id) < ids.index(tx_second.id) < ids.index(tx_first.id)
+
+
+# --- pagination ---
+
+def test_limit_returns_at_most_n_results(session):
+    account = crud.create_account(schemas.AccountCreate(name="FLim Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FLim Category"), session)
+    for i in range(5):
+        crud.create_transaction(
+            schemas.TransactionCreate(amount=float(i + 1), date=DATE_JAN, account_id=account.id, category_id=category.id),
+            session,
+        )
+    results = crud.read_transactions_filtered(session, account_id=account.id, limit=3)
+    assert len(results) == 3
+
+def test_offset_skips_first_n_results(session):
+    account = crud.create_account(schemas.AccountCreate(name="FOff Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FOff Category"), session)
+    txs = [
+        crud.create_transaction(
+            schemas.TransactionCreate(amount=float(i + 1), date=DATE_JAN, account_id=account.id, category_id=category.id),
+            session,
+        )
+        for i in range(4)
+    ]
+    all_results = crud.read_transactions_filtered(session, account_id=account.id)
+    offset_results = crud.read_transactions_filtered(session, account_id=account.id, offset=2)
+    assert offset_results == all_results[2:]
+
+def test_limit_and_offset_returns_correct_page(session):
+    account = crud.create_account(schemas.AccountCreate(name="FPag Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FPag Category"), session)
+    for i in range(6):
+        crud.create_transaction(
+            schemas.TransactionCreate(amount=float(i + 1), date=DATE_JAN, account_id=account.id, category_id=category.id),
+            session,
+        )
+    page1 = crud.read_transactions_filtered(session, account_id=account.id, limit=2, offset=0)
+    page2 = crud.read_transactions_filtered(session, account_id=account.id, limit=2, offset=2)
+    page3 = crud.read_transactions_filtered(session, account_id=account.id, limit=2, offset=4)
+    assert len(page1) == 2
+    assert len(page2) == 2
+    assert len(page3) == 2
+    all_ids = [t.id for t in page1] + [t.id for t in page2] + [t.id for t in page3]
+    assert len(set(all_ids)) == 6
+
+def test_offset_beyond_results_returns_empty(session):
+    account = crud.create_account(schemas.AccountCreate(name="FOffE Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FOffE Category"), session)
+    crud.create_transaction(
+        schemas.TransactionCreate(amount=10.0, date=DATE_JAN, account_id=account.id, category_id=category.id),
+        session,
+    )
+    results = crud.read_transactions_filtered(session, account_id=account.id, offset=999)
+    assert results == []
+
+def test_limit_larger_than_results_returns_all(session):
+    account = crud.create_account(schemas.AccountCreate(name="FLimL Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FLimL Category"), session)
+    for i in range(3):
+        crud.create_transaction(
+            schemas.TransactionCreate(amount=float(i + 1), date=DATE_JAN, account_id=account.id, category_id=category.id),
+            session,
+        )
+    results = crud.read_transactions_filtered(session, account_id=account.id, limit=100)
+    assert len(results) == 3
+
+def test_pagination_with_filters(session):
+    account = crud.create_account(schemas.AccountCreate(name="FPagF Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FPagF Category"), session)
+    other_category = crud.create_category(schemas.CategoryCreate(name="FPagF Other Category"), session)
+    for i in range(4):
+        crud.create_transaction(
+            schemas.TransactionCreate(amount=float(i + 1), date=DATE_JAN, account_id=account.id, category_id=category.id),
+            session,
+        )
+    crud.create_transaction(
+        schemas.TransactionCreate(amount=99.0, date=DATE_JAN, account_id=account.id, category_id=other_category.id),
+        session,
+    )
+    page1 = crud.read_transactions_filtered(session, account_id=account.id, category_id=category.id, limit=2, offset=0)
+    page2 = crud.read_transactions_filtered(session, account_id=account.id, category_id=category.id, limit=2, offset=2)
+    assert len(page1) == 2
+    assert len(page2) == 2
+    assert all(t.category_id == category.id for t in page1 + page2)

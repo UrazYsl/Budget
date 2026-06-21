@@ -106,7 +106,7 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 - [X] Create recurring transaction
 - [X] List recurring transactions
 - [X] Delete recurring transaction
-- [ ] Update recurring transaction
+- [X] Update recurring transaction
 
 ### Step 5: Documentation polish
 - [ ] Document Phase 3 endpoints in README (brief list + examples)
@@ -116,6 +116,6 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 ## What's Next (Later)
 |    Phase    | Description                                |
 |-------------|--------------------------------------------|
-| **Phase 4** | Automated tables (CRUD for tables)         |
+| **Phase 4** | Automated tables (CRUD for tables) & time  |
 | **Phase 5** | Android app                                |
 | **Phase 6** | Deploy to server                           |

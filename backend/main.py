@@ -121,6 +121,13 @@ def create_recurring_transaction_endpoint(rtx: RecurringTransactionCreate, db: S
 def read_recurring_transactions_endpoint(db: Session = Depends(get_db)):
     return crud.read_recurring_transactions(db)
 
+@app.put("/recurring_transactions/{rtx_id}")
+def update_recurring_transaction_endpoint(rtx_id: int, rtx: RecurringTransactionCreate, db: Session = Depends(get_db)):
+    updated = crud.update_recurring_transaction(rtx_id, rtx, db)
+    if updated == 0:
+        raise HTTPException(status_code=404, detail="Recurring transaction not found")
+    return {"updated": updated}
+
 @app.delete("/recurring_transactions/{rtx_id}")
 def delete_recurring_transaction_endpoint(rtx_id: int, db: Session = Depends(get_db)):
     deleted = crud.delete_recurring_transaction(rtx_id, db)

@@ -109,7 +109,7 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 - [X] Update recurring transaction
 
 ### Step 5: Documentation polish
-- [ ] Document Phase 3 endpoints in README (brief list + examples)
+- [X] Document Phase 3 endpoints in README (brief list + examples)
 
 ---
 

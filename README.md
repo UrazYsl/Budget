@@ -8,7 +8,7 @@ A full-stack personal budgeting app with a FastAPI backend and an Android client
 
 - **Phase 1 (Backend setup):** Complete - FastAPI app, DB connection, CRUD, schemas, database models (Account, Category, Transaction), and transaction endpoint.
 - **Phase 2 (Environment & Initialization):** Complete - Docker integration and reproducible database setup.
-- **Phase 3 (Core API Expansion):** In Progress — completing update endpoints and improving transaction querying.
+- **Phase 3 (Core API Expansion):** Complete — full CRUD for accounts, categories, transactions, and recurring transactions with filtering and pagination.
 
 ## Python packages
 
@@ -111,8 +111,98 @@ docker compose run --rm api alembic upgrade head
 
 Migration files are stored in `backend/alembic/versions/` and should be committed to version control.
 
-### API Docs
-http://127.0.0.1:8000/docs
+## API Endpoints
+
+Interactive docs (Swagger UI): http://127.0.0.1:8000/docs
+
+### Health
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health/db` | Check database connectivity |
+
+### Accounts
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/accounts` | Create an account |
+| GET | `/accounts` | List all accounts |
+| PUT | `/accounts/{id}?new_name=X` | Rename an account |
+| DELETE | `/accounts/{id}` | Delete account (cascades transactions) |
+
+```bash
+curl -X POST http://localhost:8000/accounts \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Checking"}'
+```
+
+### Categories
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/categories` | Create a category |
+| GET | `/categories` | List all categories |
+| PUT | `/categories/{id}?new_name=X` | Rename a category |
+| DELETE | `/categories/{id}` | Delete category (transactions reassigned to Misc) |
+
+```bash
+curl -X POST http://localhost:8000/categories \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Groceries"}'
+```
+
+### Transactions
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/transactions` | Create a transaction |
+| GET | `/transactions` | List transactions (supports filters) |
+| PUT | `/transactions/{id}` | Update a transaction |
+| DELETE | `/transactions/{id}` | Delete a transaction |
+
+**GET query parameters (all optional):**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `account_id` | int | Filter by account |
+| `category_id` | int | Filter by category |
+| `start_date` | date (YYYY-MM-DD) | Earliest date (inclusive) |
+| `end_date` | date (YYYY-MM-DD) | Latest date (inclusive) |
+| `limit` | int | Max results to return |
+| `offset` | int | Number of results to skip (default 0) |
+
+```bash
+# Create
+curl -X POST http://localhost:8000/transactions \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 42.50, "date": "2026-06-01", "account_id": 1, "category_id": 2}'
+
+# List with filters
+curl "http://localhost:8000/transactions?account_id=1&start_date=2026-01-01&end_date=2026-06-30&limit=20&offset=0"
+```
+
+### Recurring Transactions
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/recurring_transactions` | Create a recurring transaction |
+| GET | `/recurring_transactions` | List all recurring transactions |
+| PUT | `/recurring_transactions/{id}` | Update a recurring transaction |
+| DELETE | `/recurring_transactions/{id}` | Delete a recurring transaction |
+
+`recurring_interval` accepted values: `daily`, `weekly`, `monthly`, `yearly`
+
+```bash
+# Create
+curl -X POST http://localhost:8000/recurring_transactions \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 9.99, "recurring_interval": "monthly", "next_run_date": "2026-07-01", "account_id": 1, "category_id": 2}'
+
+# Update
+curl -X PUT http://localhost:8000/recurring_transactions/1 \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 12.99, "recurring_interval": "monthly", "next_run_date": "2026-07-01", "account_id": 1, "category_id": 2}'
+```
 
 ### Health Check
 http://127.0.0.1:8000/health/db
@@ -146,8 +236,33 @@ docker compose up -d
 **Run tests:**
 ```bash
 cd backend
+
+# Run all tests
 python -m pytest tests/ -v
+
+# Run a specific test file
+python -m pytest tests/crud_tests/test_transactions.py -v
+
+# Run a specific test by name (substring match)
+python -m pytest tests/ -v -k "test_update_transaction"
+
+# Run and stop at the first failure
+python -m pytest tests/ -v -x
+
+# Run without verbose output (summary only)
+python -m pytest tests/
 ```
+
+Test files are in `backend/tests/crud_tests/`:
+
+| File | What it covers |
+|------|----------------|
+| `test_accounts.py` | Account CRUD |
+| `test_categories.py` | Category CRUD |
+| `test_transactions.py` | Transaction CRUD |
+| `test_recurring_transactions.py` | Recurring transaction CRUD |
+| `test_filter.py` | Transaction filtering & pagination |
+| `test_filter_recurring.py` | Recurring transaction filtering & pagination |
 
 **Stop:**
 ```bash

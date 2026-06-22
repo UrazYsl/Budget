@@ -118,8 +118,17 @@ def create_recurring_transaction_endpoint(rtx: RecurringTransactionCreate, db: S
     return crud.create_recurring_transaction(rtx, db)
 
 @app.get("/recurring_transactions", response_model=list[RecurringTransactionOut])
-def read_recurring_transactions_endpoint(db: Session = Depends(get_db)):
-    return crud.read_recurring_transactions(db)
+def read_recurring_transactions_endpoint(
+    account_id: int | None = None,
+    category_id: int | None = None,
+    recurring_interval: str | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    limit: int | None = Query(default=None, ge=1),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+):
+    return crud.read_recurring_transactions_filtered(db, account_id, category_id, recurring_interval, start_date, end_date, limit, offset)
 
 @app.put("/recurring_transactions/{rtx_id}")
 def update_recurring_transaction_endpoint(rtx_id: int, rtx: RecurringTransactionCreate, db: Session = Depends(get_db)):

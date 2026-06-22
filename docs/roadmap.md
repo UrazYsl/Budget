@@ -113,9 +113,38 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 
 ---
 
+## Phase 4: Automation & Summaries
+
+Goal: Make recurring transactions run themselves, expose the missing filter endpoint, and add time-based summary data for the Android dashboard.
+
+### Step 1: Recurring Transaction Processor (Core Logic)
+- [ ] Write a `process_due_recurring_transactions(db)` function in `crud.py`
+- [ ] Query all `recurring_transactions` where `next_run_date <= today`
+- [ ] For each one: create a real `Transaction` and advance `next_run_date` by the interval (`+1 day / +7 days / +1 month / +1 year`)
+
+### Step 2: Expose the Processor via Endpoint
+- [ ] Add `POST /recurring_transactions/run` endpoint in `main.py`
+- [ ] Returns count of transactions created
+- [ ] Also call it automatically on app startup (in `lifespan`) so it runs each time the container starts
+
+### Step 3: Wire Up Recurring Transaction Filters
+- [ ] Replace `read_recurring_transactions` call in `main.py` with `read_recurring_transactions_filtered` (already in `crud.py`, just not hooked up)
+- [ ] Add query params to `GET /recurring_transactions`: `account_id`, `category_id`, `recurring_interval`, `start_date`, `end_date`, `limit`, `offset`
+
+### Step 4: Summary / Aggregation Endpoints
+- [ ] Add `GET /summary/monthly?year=YYYY&month=MM` → returns `{income, expenses, net}` for that month
+- [ ] Add `GET /summary/accounts` → returns current balance (sum of all transactions) per account
+- [ ] Add `GET /summary/categories?year=YYYY&month=MM` → returns spending per category for the month
+
+### Step 5: Tests & Documentation
+- [ ] Write tests for the recurring transaction processor (due today, not yet due, interval advancement for all 4 interval types)
+- [ ] Write tests for the summary endpoints
+- [ ] Update README with new endpoints
+
+---
+
 ## What's Next (Later)
 |    Phase    | Description                                |
 |-------------|--------------------------------------------|
-| **Phase 4** | Automated tables (CRUD for tables) & time  |
 | **Phase 5** | Android app                                |
 | **Phase 6** | Deploy to server                           |

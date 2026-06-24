@@ -13,18 +13,6 @@ A self-hosted personal budgeting web app. FastAPI backend + Alpine.js frontend, 
 - **Phase 5 (Model Expansion):** In progress — income/expense type field, receipt attachments.
 - **Phase 6 (Web Frontend):** Planned — Alpine.js + HTML/CSS frontend served via nginx in Docker.
 
-## Python packages
-
-- fastapi
-- uvicorn
-- sqlalchemy
-- psycopg[binary]
-- alembic
-
-OPTIONALS:
-- pytest
-- python-dotenv (required for running tests outside Docker)
-
 ## Prerequisites
 
 ### Installing Docker
@@ -66,7 +54,9 @@ Or log out and log back in.
 
 The project uses a `.env` file for database configuration.
 
-Create a `.env` file in the project root based on `.env.example`:
+A `.env` file is optional — the app runs with defaults if none is present. It is recommended if you want to change the password or set your timezone.
+
+To create one:
 
 ```bash
 cp .env.example .env
@@ -289,6 +279,11 @@ docker compose up --build
 ## Running Tests
 
 Tests use a separate `budgeting_test` database inside the same PostgreSQL container.
+
+> **Python packages** — inside Docker all packages install automatically. For running tests locally on your machine you need to install them manually once:
+> ```bash
+> python3 -m pip install fastapi uvicorn sqlalchemy "psycopg[binary]" alembic python-dateutil apscheduler pytest python-dotenv
+> ```
 
 **Start** (same as normal — tests share the running container):
 ```bash

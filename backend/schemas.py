@@ -32,6 +32,23 @@ class TransactionOut(TransactionCreate):
     model_config = ConfigDict(from_attributes=True)
     id: int
 
+class MonthlySummary(BaseModel):
+    year: int
+    month: int
+    total: float
+    transaction_count: int
+
+class AccountBalance(BaseModel):
+    account_id: int
+    account_name: str
+    balance: float
+
+class CategoryTotal(BaseModel):
+    category_id: int
+    category_name: str
+    total: float
+
+
 class RecurringTransactionCreate(BaseModel):
     amount: float = Field(gt=0)
     recurring_interval: Interval

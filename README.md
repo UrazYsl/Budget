@@ -190,6 +190,18 @@ curl "http://localhost:8000/transactions?account_id=1&start_date=2026-01-01&end_
 | PUT | `/recurring_transactions/{id}` | Update a recurring transaction |
 | DELETE | `/recurring_transactions/{id}` | Delete a recurring transaction |
 
+**GET query parameters (all optional):**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `account_id` | int | Filter by account |
+| `category_id` | int | Filter by category |
+| `recurring_interval` | string | Filter by interval (`daily`, `weekly`, `monthly`, `yearly`) |
+| `start_date` | date (YYYY-MM-DD) | Earliest next_run_date (inclusive) |
+| `end_date` | date (YYYY-MM-DD) | Latest next_run_date (inclusive) |
+| `limit` | int | Max results to return |
+| `offset` | int | Number of results to skip (default 0) |
+
 `recurring_interval` accepted values: `daily`, `weekly`, `monthly`, `yearly`
 
 ```bash
@@ -202,6 +214,47 @@ curl -X POST http://localhost:8000/recurring_transactions \
 curl -X PUT http://localhost:8000/recurring_transactions/1 \
   -H "Content-Type: application/json" \
   -d '{"amount": 12.99, "recurring_interval": "monthly", "next_run_date": "2026-07-01", "account_id": 1, "category_id": 2}'
+```
+
+### Recurring Transaction Processor
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/recurring_transactions/run` | Process all due recurring transactions now |
+
+Returns `{"created": N}` — the number of real transactions created. Also runs automatically on startup and daily at midnight (Toronto time).
+
+### Summaries
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/summary/monthly` | Total spend + count for a given month |
+| GET | `/summary/accounts` | Running balance per account |
+| GET | `/summary/categories` | Spend per category for a given month |
+
+**GET `/summary/monthly` query parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `year` | int | Year (e.g. 2026) |
+| `month` | int | Month (1–12) |
+
+**GET `/summary/categories` query parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `year` | int | Year (e.g. 2026) |
+| `month` | int | Month (1–12) |
+
+```bash
+# Monthly summary
+curl "http://localhost:8000/summary/monthly?year=2026&month=6"
+
+# Account balances
+curl "http://localhost:8000/summary/accounts"
+
+# Category breakdown for a month
+curl "http://localhost:8000/summary/categories?year=2026&month=6"
 ```
 
 ### Health Check
@@ -222,11 +275,6 @@ docker compose up --build
 ## Running Tests
 
 Tests use a separate `budgeting_test` database inside the same PostgreSQL container.
-
-**One-time setup** — create the test database (only needed once, survives restarts):
-```bash
-docker exec budgeting-app-db-1 psql -U postgres -c "CREATE DATABASE budgeting_test;"
-```
 
 **Start** (same as normal — tests share the running container):
 ```bash

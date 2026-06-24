@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from contextlib import asynccontextmanager
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from database import SessionLocal
 import crud
@@ -11,14 +12,30 @@ from schemas import (
     CategoryCreate, CategoryOut,
     TransactionCreate, TransactionOut,
     RecurringTransactionCreate, RecurringTransactionOut,
+    MonthlySummary, AccountBalance, CategoryTotal,
 )
 from init import init_db
+
+
+def _run_processor():
+    db = SessionLocal()
+    try:
+        crud.process_due_recurring_transactions(db)
+    finally:
+        db.close()
+
+
+scheduler = AsyncIOScheduler()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    _run_processor()
+    scheduler.add_job(_run_processor, "cron", hour=0, minute=0, timezone="America/Toronto")
+    scheduler.start()
     yield
+    scheduler.shutdown()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -143,3 +160,21 @@ def delete_recurring_transaction_endpoint(rtx_id: int, db: Session = Depends(get
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Recurring transaction not found")
     return {"deleted": deleted}
+
+@app.post("/recurring_transactions/run")
+def run_recurring_transactions_endpoint(db: Session = Depends(get_db)):
+    count = crud.process_due_recurring_transactions(db)
+    return {"created": count}
+
+
+@app.get("/summary/monthly", response_model=MonthlySummary)
+def monthly_summary_endpoint(year: int, month: int, db: Session = Depends(get_db)):
+    return crud.get_monthly_summary(db, year, month)
+
+@app.get("/summary/accounts", response_model=list[AccountBalance])
+def account_balances_endpoint(db: Session = Depends(get_db)):
+    return crud.get_account_balances(db)
+
+@app.get("/summary/categories", response_model=list[CategoryTotal])
+def category_totals_endpoint(year: int, month: int, db: Session = Depends(get_db)):
+    return crud.get_category_totals(db, year, month)

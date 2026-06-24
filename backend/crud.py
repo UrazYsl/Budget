@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func, extract
 from sqlalchemy.orm import Session
 from models import Account, Category, Transaction, RecurringTransaction
 from schemas import AccountCreate, CategoryCreate
@@ -185,6 +185,52 @@ def process_due_recurring_transactions(db: Session) -> int:
 
     db.commit()
     return count
+
+
+### SUMMARIES ###
+
+def get_monthly_summary(db: Session, year: int, month: int) -> dict:
+    row = db.execute(
+        select(
+            func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
+            func.count(Transaction.id).label("transaction_count"),
+        ).where(
+            extract("year", Transaction.date) == year,
+            extract("month", Transaction.date) == month,
+        )
+    ).one()
+    return {"year": year, "month": month, "total": row.total, "transaction_count": row.transaction_count}
+
+def get_account_balances(db: Session) -> list[dict]:
+    rows = db.execute(
+        select(
+            Account.id.label("account_id"),
+            Account.name.label("account_name"),
+            func.coalesce(func.sum(Transaction.amount), 0.0).label("balance"),
+        )
+        .outerjoin(Transaction, Transaction.account_id == Account.id)
+        .group_by(Account.id, Account.name)
+        .order_by(Account.id)
+    ).all()
+    return [{"account_id": r.account_id, "account_name": r.account_name, "balance": r.balance} for r in rows]
+
+def get_category_totals(db: Session, year: int, month: int) -> list[dict]:
+    rows = db.execute(
+        select(
+            Category.id.label("category_id"),
+            Category.name.label("category_name"),
+            func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
+        )
+        .outerjoin(
+            Transaction,
+            (Transaction.category_id == Category.id)
+            & (extract("year", Transaction.date) == year)
+            & (extract("month", Transaction.date) == month),
+        )
+        .group_by(Category.id, Category.name)
+        .order_by(Category.id)
+    ).all()
+    return [{"category_id": r.category_id, "category_name": r.category_name, "total": r.total} for r in rows]
 
 
 ### FILTERS ###

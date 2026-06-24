@@ -9,6 +9,7 @@ venv/
 env/
 
 # Environment / secrets
+.env
 
 
 # Logs

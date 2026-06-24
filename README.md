@@ -71,8 +71,19 @@ Create a `.env` file in the project root based on `.env.example`:
 ```bash
 cp .env.example .env
 ```
-Then adjust the values if needed (database name, user, password).
-Docker Compose automatically loads variables from .env.
+
+Then adjust the values:
+
+| Variable | Description |
+|----------|-------------|
+| `POSTGRES_USER` | Database username |
+| `POSTGRES_PASSWORD` | Database password — **change this** |
+| `POSTGRES_DB` | Database name |
+| `DATABASE_URL` | Full DB connection string (update user/password to match above) |
+| `TEST_DATABASE_URL` | Test DB connection string (same but points to `budgeting_test`) |
+| `SCHEDULER_TIMEZONE` | Timezone for the daily recurring transaction job (e.g. `America/Toronto`, `Europe/Istanbul`, `UTC`) |
+
+Docker Compose automatically loads variables from `.env`.
 
 
 ### Run the full stack

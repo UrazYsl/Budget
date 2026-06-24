@@ -205,16 +205,22 @@ Goal: Build a browser-based UI served by the same Docker stack. Accessible from 
 - [ ] Account balances
 - [ ] Category breakdown for selected month
 
-### Step 8: Setup Script
-- [ ] Write `start.sh` for Linux that auto-installs Docker if missing, creates `.env` if not present, and runs `docker compose up -d`
+### Step 8: Settings Page
+- [ ] Add a settings view in the UI
+- [ ] Timezone selector dropdown (updates `SCHEDULER_TIMEZONE` in `.env`)
+
+### Step 9: Setup Script
+- [ ] Write `start.sh` for Linux that auto-installs Docker if missing, copies `.env.example` to `.env` if not present, and runs `docker compose up -d`
 - [ ] Test on Ubuntu
 
-### Step 9: Documentation
+### Step 10: Documentation
 - [ ] Update README with frontend access instructions and setup script usage
 
 ---
 
 ## What's Next (Later)
 |    Phase    | Description           |
+|-------------|-----------------------|
+| **Phase 6** | Web Frontend          |
 |-------------|-----------------------|
 | **Phase 7** | Deploy to server      |

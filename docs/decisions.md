@@ -21,6 +21,9 @@ Schema changes need to be applied to the running database without wiping data. A
 **`pool_pre_ping=True` in SQLAlchemy engine**
 The connection pool can hold stale connections after long idle periods. `pool_pre_ping` transparently reconnects before each query so the server never errors after sitting idle.
 
+**Timezone configured via `.env`, not hardcoded**
+Different users are in different timezones. `SCHEDULER_TIMEZONE` in `.env` lets each person set their own without touching code. Defaults to `UTC` if not set.
+
 **`python-dateutil` for date arithmetic**
 `timedelta` can't handle months/years correctly (e.g. Jan 31 + 1 month). `relativedelta` from `python-dateutil` handles edge cases like month-end dates properly.
 

@@ -1,3 +1,5 @@
+import os
+import zoneinfo
 from datetime import date
 from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -17,6 +19,15 @@ from schemas import (
 from init import init_db
 
 
+def _get_timezone() -> str:
+    tz = os.getenv("SCHEDULER_TIMEZONE", "UTC")
+    try:
+        zoneinfo.ZoneInfo(tz)
+    except zoneinfo.ZoneInfoNotFoundError:
+        raise RuntimeError(f"Invalid SCHEDULER_TIMEZONE '{tz}'. Use a valid tz name e.g. 'America/Toronto'.")
+    return tz
+
+
 def _run_processor():
     db = SessionLocal()
     try:
@@ -32,7 +43,7 @@ scheduler = AsyncIOScheduler()
 async def lifespan(app: FastAPI):
     init_db()
     _run_processor()
-    scheduler.add_job(_run_processor, "cron", hour=0, minute=0, timezone="America/Toronto")
+    scheduler.add_job(_run_processor, "cron", hour=0, minute=0, timezone=_get_timezone())
     scheduler.start()
     yield
     scheduler.shutdown()

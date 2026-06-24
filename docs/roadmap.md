@@ -143,7 +143,31 @@ Goal: Make recurring transactions run themselves, expose the missing filter endp
 
 ---
 
-## Phase 5: Web Frontend (Current Focus)
+## Phase 5: Model Expansion (Current Focus)
+
+Goal: Extend the transaction model to support income/expense distinction and receipt attachments before building the frontend.
+
+### Step 1: Income/Expense Type
+- [ ] Add `type` enum (`income` / `expense`) to `Transaction` model and schema (required, amount stays positive and non-zero)
+- [ ] Add `type` field to `RecurringTransaction` model and schema
+- [ ] Generate and apply Alembic migration
+- [ ] Update summary endpoints to split income vs expenses (`total_income`, `total_expenses`, `net`)
+
+### Step 2: Receipt Attachments
+- [ ] Add nullable `receipt_path` column to `Transaction` model
+- [ ] Add `POST /transactions/{id}/receipt` endpoint (accepts image upload, stores in Docker volume)
+- [ ] Add `GET /transactions/{id}/receipt` endpoint (returns the image file)
+- [ ] Mount a `receipts` volume in `docker-compose.yml`
+- [ ] Generate and apply Alembic migration
+
+### Step 3: Tests & Documentation
+- [ ] Update existing transaction tests to include `type` field
+- [ ] Write tests for receipt upload and retrieval
+- [ ] Update README with new fields and endpoints
+
+---
+
+## Phase 6: Web Frontend
 
 Goal: Build a browser-based UI served by the same Docker stack. Accessible from any device on the network at `http://server-ip`.
 
@@ -161,8 +185,9 @@ Goal: Build a browser-based UI served by the same Docker stack. Accessible from 
 - [ ] Implement client-side view switching with Alpine.js (single page, no page reloads)
 
 ### Step 4: Transactions View
-- [ ] List transactions with filters (account, category, date range, pagination)
-- [ ] Add transaction form
+- [ ] List transactions with filters (account, category, date range, type, pagination)
+- [ ] Saveable/pinned filters via `localStorage` so they persist across refreshes
+- [ ] Add transaction form (with income/expense toggle and optional receipt upload)
 - [ ] Edit and delete transaction
 
 ### Step 5: Accounts & Categories Views
@@ -176,7 +201,7 @@ Goal: Build a browser-based UI served by the same Docker stack. Accessible from 
 
 ### Step 7: Dashboard View
 - [ ] Month picker (year + month)
-- [ ] Monthly summary (total spend + transaction count)
+- [ ] Monthly summary (total income, total expenses, net)
 - [ ] Account balances
 - [ ] Category breakdown for selected month
 
@@ -192,4 +217,4 @@ Goal: Build a browser-based UI served by the same Docker stack. Accessible from 
 ## What's Next (Later)
 |    Phase    | Description           |
 |-------------|-----------------------|
-| **Phase 6** | Deploy to server      |
+| **Phase 7** | Deploy to server      |

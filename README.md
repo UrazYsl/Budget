@@ -1,14 +1,16 @@
 # Budgeting-App
 
-A full-stack personal budgeting app with a FastAPI backend and an Android client (Kotlin). Tracks income, expenses, accounts, and categories with REST APIs and sync to your own server.
+A self-hosted personal budgeting web app. FastAPI backend + Alpine.js frontend, served via Docker. Accessible from any browser on your network.
 
-**Stack:** Kotlin (Android), FastAPI (Python), PostgreSQL, Docker
+**Stack:** FastAPI (Python), PostgreSQL, Alpine.js, HTML/CSS, nginx, Docker
 
 ## Status
 
 - **Phase 1 (Backend setup):** Complete - FastAPI app, DB connection, CRUD, schemas, database models (Account, Category, Transaction), and transaction endpoint.
 - **Phase 2 (Environment & Initialization):** Complete - Docker integration and reproducible database setup.
 - **Phase 3 (Core API Expansion):** Complete — full CRUD for accounts, categories, transactions, and recurring transactions with filtering and pagination.
+- **Phase 4 (Automation & Summaries):** Complete — recurring transaction processor with APScheduler (runs daily at midnight Toronto time + on startup), summary endpoints for monthly totals, account balances, and category breakdowns.
+- **Phase 5 (Web Frontend):** In progress — Alpine.js + HTML/CSS frontend served via nginx in Docker.
 
 ## Python packages
 

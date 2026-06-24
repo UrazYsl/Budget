@@ -115,7 +115,7 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 
 ## Phase 4: Automation & Summaries
 
-Goal: Make recurring transactions run themselves, expose the missing filter endpoint, and add time-based summary data for the Android dashboard.
+Goal: Make recurring transactions run themselves, expose the missing filter endpoint, and add time-based summary data for the web dashboard.
 
 ### Step 1: Recurring Transaction Processor (Core Logic)
 - [X] Write a `process_due_recurring_transactions(db)` function in `crud.py`
@@ -143,8 +143,53 @@ Goal: Make recurring transactions run themselves, expose the missing filter endp
 
 ---
 
+## Phase 5: Web Frontend (Current Focus)
+
+Goal: Build a browser-based UI served by the same Docker stack. Accessible from any device on the network at `http://server-ip`.
+
+### Step 1: CORS & Project Structure
+- [ ] Add CORS middleware to FastAPI so the frontend can call the API
+- [ ] Create `frontend/` directory with `index.html`, `css/style.css`, `js/app.js`
+- [ ] Add Alpine.js via CDN (no npm, no build step)
+
+### Step 2: Docker Integration
+- [ ] Add nginx container to `docker-compose.yml` to serve the `frontend/` directory
+- [ ] Verify frontend is accessible at port 80 after `docker compose up`
+
+### Step 3: Base Layout & Navigation
+- [ ] Build a base layout with a sidebar/navbar (Transactions, Accounts, Categories, Recurring, Dashboard)
+- [ ] Implement client-side view switching with Alpine.js (single page, no page reloads)
+
+### Step 4: Transactions View
+- [ ] List transactions with filters (account, category, date range, pagination)
+- [ ] Add transaction form
+- [ ] Edit and delete transaction
+
+### Step 5: Accounts & Categories Views
+- [ ] List, add, rename, delete accounts
+- [ ] List, add, rename, delete categories
+
+### Step 6: Recurring Transactions View
+- [ ] List recurring transactions with filters
+- [ ] Add, edit, delete recurring transaction
+- [ ] Manual "Run Now" button (`POST /recurring_transactions/run`)
+
+### Step 7: Dashboard View
+- [ ] Month picker (year + month)
+- [ ] Monthly summary (total spend + transaction count)
+- [ ] Account balances
+- [ ] Category breakdown for selected month
+
+### Step 8: Setup Script
+- [ ] Write `start.sh` for Linux that auto-installs Docker if missing, creates `.env` if not present, and runs `docker compose up -d`
+- [ ] Test on Ubuntu
+
+### Step 9: Documentation
+- [ ] Update README with frontend access instructions and setup script usage
+
+---
+
 ## What's Next (Later)
-|    Phase    | Description                                |
-|-------------|--------------------------------------------|
-| **Phase 5** | Android app                                |
-| **Phase 6** | Deploy to server                           |
+|    Phase    | Description           |
+|-------------|-----------------------|
+| **Phase 6** | Deploy to server      |

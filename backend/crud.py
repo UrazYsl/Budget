@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 from models import Account, Category, Transaction, RecurringTransaction
@@ -153,6 +154,38 @@ def update_recurring_transaction(rtx_id: int, rtx, db: Session) -> int:
     recurring.category_id = rtx.category_id
     db.commit()
     return 1
+
+def _advance_date(d: date, interval: str) -> date:
+    if interval == "daily":
+        return d + timedelta(days=1)
+    if interval == "weekly":
+        return d + timedelta(weeks=1)
+    if interval == "monthly":
+        return d + relativedelta(months=1)
+    if interval == "yearly":
+        return d + relativedelta(years=1)
+
+def process_due_recurring_transactions(db: Session) -> int:
+    today = date.today()
+    due = db.scalars(
+        select(RecurringTransaction).where(RecurringTransaction.next_run_date <= today)
+    ).all()
+
+    count = 0
+    for rtx in due:
+        while rtx.next_run_date <= today:
+            db.add(Transaction(
+                date=rtx.next_run_date,
+                amount=rtx.amount,
+                account_id=rtx.account_id,
+                category_id=rtx.category_id,
+            ))
+            rtx.next_run_date = _advance_date(rtx.next_run_date, rtx.recurring_interval)
+            count += 1
+
+    db.commit()
+    return count
+
 
 ### FILTERS ###
 # The parameters are optional, to allow for combinations of filters. 

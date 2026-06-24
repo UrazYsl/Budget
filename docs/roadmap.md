@@ -118,9 +118,9 @@ Goal: Make the backend usable for the Android client by completing CRUD + adding
 Goal: Make recurring transactions run themselves, expose the missing filter endpoint, and add time-based summary data for the Android dashboard.
 
 ### Step 1: Recurring Transaction Processor (Core Logic)
-- [ ] Write a `process_due_recurring_transactions(db)` function in `crud.py`
-- [ ] Query all `recurring_transactions` where `next_run_date <= today`
-- [ ] For each one: create a real `Transaction` and advance `next_run_date` by the interval (`+1 day / +7 days / +1 month / +1 year`)
+- [X] Write a `process_due_recurring_transactions(db)` function in `crud.py`
+- [X] Query all `recurring_transactions` where `next_run_date <= today`
+- [X] For each one: create a real `Transaction` and advance `next_run_date` by the interval (`+1 day / +7 days / +1 month / +1 year`)
 
 ### Step 2: Expose the Processor via Endpoint
 - [ ] Add `POST /recurring_transactions/run` endpoint in `main.py`
@@ -128,8 +128,8 @@ Goal: Make recurring transactions run themselves, expose the missing filter endp
 - [ ] Also call it automatically on app startup (in `lifespan`) so it runs each time the container starts
 
 ### Step 3: Wire Up Recurring Transaction Filters
-- [ ] Replace `read_recurring_transactions` call in `main.py` with `read_recurring_transactions_filtered` (already in `crud.py`, just not hooked up)
-- [ ] Add query params to `GET /recurring_transactions`: `account_id`, `category_id`, `recurring_interval`, `start_date`, `end_date`, `limit`, `offset`
+- [X] Replace `read_recurring_transactions` call in `main.py` with `read_recurring_transactions_filtered` (already in `crud.py`, just not hooked up)
+- [X] Add query params to `GET /recurring_transactions`: `account_id`, `category_id`, `recurring_interval`, `start_date`, `end_date`, `limit`, `offset`
 
 ### Step 4: Summary / Aggregation Endpoints
 - [ ] Add `GET /summary/monthly?year=YYYY&month=MM` → returns `{income, expenses, net}` for that month

@@ -161,9 +161,9 @@ Goal: Extend the transaction model to support income/expense distinction and rec
 - [X] Generate and apply Alembic migration
 
 ### Step 3: Tests & Documentation
-- [ ] Update existing transaction tests to include `type` field
-- [ ] Write tests for receipt upload and retrieval
-- [ ] Update README with new fields and endpoints
+- [X] Update existing transaction tests to include `type` field
+- [X] Write tests for receipt upload and retrieval
+- [X] Update README with new fields and endpoints
 
 ---
 
@@ -172,9 +172,9 @@ Goal: Extend the transaction model to support income/expense distinction and rec
 Goal: Build a browser-based UI served by the same Docker stack. Accessible from any device on the network at `http://server-ip`.
 
 ### Step 1: CORS & Project Structure
-- [ ] Add CORS middleware to FastAPI so the frontend can call the API
-- [ ] Create `frontend/` directory with `index.html`, `css/style.css`, `js/app.js`
-- [ ] Add Alpine.js via CDN (no npm, no build step)
+- [X] Add CORS middleware to FastAPI so the frontend can call the API
+- [X] Create `frontend/` directory with `index.html`, `css/style.css`, `js/app.js`
+- [X] Add Alpine.js via CDN (no npm, no build step)
 
 ### Step 2: Docker Integration
 - [ ] Add nginx container to `docker-compose.yml` to serve the `frontend/` directory
@@ -221,6 +221,6 @@ Goal: Build a browser-based UI served by the same Docker stack. Accessible from 
 ## What's Next (Later)
 |    Phase    | Description           |
 |-------------|-----------------------|
-| **Phase 6** | Web Frontend          |
+| **Phase 7** | Styling pass          |
 |-------------|-----------------------|
-| **Phase 7** | Deploy to server      |
+| **Phase 8** | Deploy to server      |

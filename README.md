@@ -10,8 +10,10 @@ A self-hosted personal budgeting web app. FastAPI backend + Alpine.js frontend, 
 - **Phase 2 (Environment & Initialization):** Complete - Docker integration and reproducible database setup.
 - **Phase 3 (Core API Expansion):** Complete — full CRUD for accounts, categories, transactions, and recurring transactions with filtering and pagination.
 - **Phase 4 (Automation & Summaries):** Complete — recurring transaction processor with APScheduler (runs daily at midnight Toronto time + on startup), summary endpoints for monthly totals, account balances, and category breakdowns.
-- **Phase 5 (Model Expansion):** In progress — income/expense type field, receipt attachments.
-- **Phase 6 (Web Frontend):** Planned — Alpine.js + HTML/CSS frontend served via nginx in Docker.
+- **Phase 5 (Model Expansion):** Complete — income/expense `type` field on transactions and recurring transactions, receipt image attachments.
+- **Phase 6 (Web Frontend):** In progress — Alpine.js + HTML/CSS frontend served via nginx in Docker.
+- **Phase 7 (Styling):** Planned — visual polish pass on the frontend.
+- **Phase 8 (Deploy):** Planned — deploy to Ubuntu home server with setup script.
 
 ## Prerequisites
 
@@ -54,7 +56,7 @@ Or log out and log back in.
 
 The project uses a `.env` file for database configuration.
 
-A `.env` file is optional — the app runs with defaults if none is present. It is recommended if you want to change the password or set your timezone.
+A `.env` file is optional, the app runs with defaults if none is present. It is recommended if you want to change the password or set your timezone.
 
 To create one:
 
@@ -67,7 +69,7 @@ Then adjust the values:
 | Variable | Description |
 |----------|-------------|
 | `POSTGRES_USER` | Database username |
-| `POSTGRES_PASSWORD` | Database password — **change this** |
+| `POSTGRES_PASSWORD` | Database password **change this** |
 | `POSTGRES_DB` | Database name |
 | `DATABASE_URL` | Full DB connection string (update user/password to match above) |
 | `TEST_DATABASE_URL` | Test DB connection string (same but points to `budgeting_test`) |
@@ -175,14 +177,43 @@ curl -X POST http://localhost:8000/categories \
 | `limit` | int | Max results to return |
 | `offset` | int | Number of results to skip (default 0) |
 
+**Transaction fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `date` | date (YYYY-MM-DD) | Transaction date |
+| `amount` | float (> 0) | Always positive |
+| `type` | `income` or `expense` | Whether this is income or an expense |
+| `account_id` | int | Account the transaction belongs to |
+| `category_id` | int | Category for this transaction |
+
 ```bash
 # Create
 curl -X POST http://localhost:8000/transactions \
   -H "Content-Type: application/json" \
-  -d '{"amount": 42.50, "date": "2026-06-01", "account_id": 1, "category_id": 2}'
+  -d '{"amount": 42.50, "date": "2026-06-01", "type": "expense", "account_id": 1, "category_id": 2}'
 
 # List with filters
 curl "http://localhost:8000/transactions?account_id=1&start_date=2026-01-01&end_date=2026-06-30&limit=20&offset=0"
+```
+
+### Transaction Receipts
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/transactions/{id}/receipt` | Upload a receipt image (replaces existing) |
+| GET | `/transactions/{id}/receipt` | Download the receipt image |
+| DELETE | `/transactions/{id}/receipt` | Remove the receipt |
+
+Only image files are accepted (`image/*` content type). The `receipt_path` field on a transaction is `null` if no receipt has been uploaded.
+
+```bash
+# Upload
+curl -X POST http://localhost:8000/transactions/1/receipt \
+  -F "file=@/path/to/receipt.jpg"
+
+# Download
+curl http://localhost:8000/transactions/1/receipt --output receipt.jpg
 ```
 
 ### Recurring Transactions
@@ -212,12 +243,12 @@ curl "http://localhost:8000/transactions?account_id=1&start_date=2026-01-01&end_
 # Create
 curl -X POST http://localhost:8000/recurring_transactions \
   -H "Content-Type: application/json" \
-  -d '{"amount": 9.99, "recurring_interval": "monthly", "next_run_date": "2026-07-01", "account_id": 1, "category_id": 2}'
+  -d '{"amount": 9.99, "type": "expense", "recurring_interval": "monthly", "next_run_date": "2026-07-01", "account_id": 1, "category_id": 2}'
 
 # Update
 curl -X PUT http://localhost:8000/recurring_transactions/1 \
   -H "Content-Type: application/json" \
-  -d '{"amount": 12.99, "recurring_interval": "monthly", "next_run_date": "2026-07-01", "account_id": 1, "category_id": 2}'
+  -d '{"amount": 12.99, "type": "expense", "recurring_interval": "monthly", "next_run_date": "2026-07-01", "account_id": 1, "category_id": 2}'
 ```
 
 ### Recurring Transaction Processor
@@ -232,7 +263,7 @@ Returns `{"created": N}` — the number of real transactions created. Also runs 
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/summary/monthly` | Total spend + count for a given month |
+| GET | `/summary/monthly` | Total income, total expenses, net, and count for a given month |
 | GET | `/summary/accounts` | Running balance per account |
 | GET | `/summary/categories` | Spend per category for a given month |
 
@@ -282,10 +313,10 @@ Tests use a separate `budgeting_test` database inside the same PostgreSQL contai
 
 > **Python packages** — inside Docker all packages install automatically. For running tests locally on your machine you need to install them manually once:
 > ```bash
-> python3 -m pip install fastapi uvicorn sqlalchemy "psycopg[binary]" alembic python-dateutil apscheduler pytest python-dotenv
+> python3 -m pip install fastapi uvicorn sqlalchemy "psycopg[binary]" alembic python-dateutil apscheduler python-multipart pytest python-dotenv
 > ```
 
-**Start** (same as normal — tests share the running container):
+**Start** (same as normal, tests share the running container):
 ```bash
 docker compose up -d
 ```
@@ -320,6 +351,7 @@ Test files are in `backend/tests/crud_tests/`:
 | `test_recurring_transactions.py` | Recurring transaction CRUD |
 | `test_filter.py` | Transaction filtering & pagination |
 | `test_filter_recurring.py` | Recurring transaction filtering & pagination |
+| `test_receipts.py` | Receipt path CRUD (`get_transaction`, `set_receipt_path`) |
 
 **Stop:**
 ```bash

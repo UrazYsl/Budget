@@ -19,7 +19,7 @@ A self-hosted personal budgeting web app. FastAPI backend + Alpine.js frontend, 
 ## Quick Start (Linux/Ubuntu)
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/UrazYsl/Budgeting-App.git
 cd Budgeting-App
 chmod +x start.sh
 ./start.sh

@@ -72,6 +72,17 @@ def create_transaction(tx, db: Session) -> Transaction:
     db.refresh(transaction)
     return transaction
 
+def get_transaction(db: Session, tx_id: int) -> Transaction | None:
+    return db.get(Transaction, tx_id)
+
+def set_receipt_path(db: Session, tx_id: int, path: str | None) -> int:
+    tx = db.get(Transaction, tx_id)
+    if tx is None:
+        return 0
+    tx.receipt_path = path
+    db.commit()
+    return 1
+
 def read_transactions(db: Session) -> list[Transaction]:
     return db.scalars(
         select(Transaction)

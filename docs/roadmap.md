@@ -154,11 +154,11 @@ Goal: Extend the transaction model to support income/expense distinction and rec
 - [X] Update summary endpoints to split income vs expenses (`total_income`, `total_expenses`, `net`)
 
 ### Step 2: Receipt Attachments
-- [ ] Add nullable `receipt_path` column to `Transaction` model
-- [ ] Add `POST /transactions/{id}/receipt` endpoint (accepts image upload, stores in Docker volume)
-- [ ] Add `GET /transactions/{id}/receipt` endpoint (returns the image file)
-- [ ] Mount a `receipts` volume in `docker-compose.yml`
-- [ ] Generate and apply Alembic migration
+- [X] Add nullable `receipt_path` column to `Transaction` model
+- [X] Add `POST /transactions/{id}/receipt` endpoint (accepts image upload, stores in Docker volume)
+- [X] Add `GET /transactions/{id}/receipt` endpoint (returns the image file)
+- [X] Mount a `receipts` volume in `docker-compose.yml`
+- [X] Generate and apply Alembic migration
 
 ### Step 3: Tests & Documentation
 - [ ] Update existing transaction tests to include `type` field

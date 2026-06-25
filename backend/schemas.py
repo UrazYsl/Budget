@@ -36,6 +36,7 @@ class TransactionCreate(BaseModel):
 class TransactionOut(TransactionCreate):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    receipt_path: str | None = None
 
 class MonthlySummary(BaseModel):
     year: int

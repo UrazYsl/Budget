@@ -5,3 +5,4 @@ psycopg[binary]
 alembic
 python-dateutil
 apscheduler
+python-multipart

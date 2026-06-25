@@ -1,11 +1,16 @@
 import os
+import shutil
 import zoneinfo
 from datetime import date
-from fastapi import FastAPI, Depends, HTTPException, Query
+from pathlib import Path
+from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from contextlib import asynccontextmanager
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+RECEIPTS_DIR = Path(os.getenv("RECEIPTS_DIR", "/app/receipts"))
 
 from database import SessionLocal
 import crud
@@ -42,6 +47,7 @@ scheduler = AsyncIOScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    RECEIPTS_DIR.mkdir(parents=True, exist_ok=True)
     init_db()
     _run_processor()
     scheduler.add_job(_run_processor, "cron", hour=0, minute=0, timezone=_get_timezone())
@@ -136,10 +142,58 @@ def update_transaction_endpoint(tx_id: int, tx: TransactionCreate, db: Session =
 
 @app.delete("/transactions/{tx_id}")
 def delete_transaction_endpoint(tx_id: int, db: Session = Depends(get_db)):
-    deleted = crud.delete_transaction(tx_id, db)
-    if deleted == 0:
+    tx = crud.get_transaction(db, tx_id)
+    if tx is None:
         raise HTTPException(status_code=404, detail="Transaction not found")
+    if tx.receipt_path:
+        receipt_file = RECEIPTS_DIR / tx.receipt_path
+        if receipt_file.exists():
+            receipt_file.unlink()
+    deleted = crud.delete_transaction(tx_id, db)
     return {"deleted": deleted}
+
+@app.post("/transactions/{tx_id}/receipt")
+def upload_receipt(tx_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    tx = crud.get_transaction(db, tx_id)
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+    if tx.receipt_path:
+        old = RECEIPTS_DIR / tx.receipt_path
+        if old.exists():
+            old.unlink()
+    suffix = Path(file.filename).suffix if file.filename else ".jpg"
+    filename = f"{tx_id}{suffix}"
+    with (RECEIPTS_DIR / filename).open("wb") as f:
+        shutil.copyfileobj(file.file, f)
+    crud.set_receipt_path(db, tx_id, filename)
+    return {"receipt_path": filename}
+
+@app.get("/transactions/{tx_id}/receipt")
+def download_receipt(tx_id: int, db: Session = Depends(get_db)):
+    tx = crud.get_transaction(db, tx_id)
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    if not tx.receipt_path:
+        raise HTTPException(status_code=404, detail="No receipt attached")
+    path = RECEIPTS_DIR / tx.receipt_path
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Receipt file not found")
+    return FileResponse(path)
+
+@app.delete("/transactions/{tx_id}/receipt")
+def delete_receipt_endpoint(tx_id: int, db: Session = Depends(get_db)):
+    tx = crud.get_transaction(db, tx_id)
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    if not tx.receipt_path:
+        raise HTTPException(status_code=404, detail="No receipt attached")
+    path = RECEIPTS_DIR / tx.receipt_path
+    if path.exists():
+        path.unlink()
+    crud.set_receipt_path(db, tx_id, None)
+    return {"deleted": True}
 
 
 @app.post("/recurring_transactions", response_model=RecurringTransactionOut)

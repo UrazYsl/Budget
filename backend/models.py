@@ -50,6 +50,7 @@ class Transaction(Base):
     date = Column(Date, nullable=False)
     amount = Column(Float, nullable=False)
     type = Column(String, nullable=False)  # income | expense
+    receipt_path = Column(String, nullable=True)
 
     # account delete -> cascade
     account_id = Column(

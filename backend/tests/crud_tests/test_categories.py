@@ -59,6 +59,7 @@ def test_delete_category_with_recurring_transaction(session):
     category_id = category.id
     recurring_transaction = RecurringTransaction(
         amount=100,
+        type="expense",
         recurring_interval="monthly",
         next_run_date=date(2024, 1, 1),
         account_id=account.id,

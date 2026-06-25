@@ -13,6 +13,7 @@ def _make_rtx(session, interval, next_run_date, amount=50.0):
     return crud.create_recurring_transaction(
         schemas.RecurringTransactionCreate(
             amount=amount,
+            type="expense",
             recurring_interval=interval,
             next_run_date=next_run_date,
             account_id=account.id,

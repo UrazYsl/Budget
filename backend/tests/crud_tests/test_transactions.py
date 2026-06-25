@@ -18,7 +18,8 @@ def test_read_transactions_seeded(session):
             amount=200.0,
             date=date.today(),
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -33,7 +34,8 @@ def test_create_transaction(session):
             amount=100.0,
             date=date.today(),
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -105,7 +107,8 @@ def test_update_existing_transaction(session):
             amount=150.0,
             date=date.today(),
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -115,7 +118,8 @@ def test_update_existing_transaction(session):
             amount=175.0,
             date=date.today(),
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -132,7 +136,8 @@ def test_update_nonexistent_transaction(session):
             amount=200.0,
             date=date.today(),
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -146,7 +151,8 @@ def test_delete_existing_transaction(session):
             amount=125.0,
             date=date.today(),
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -169,7 +175,8 @@ def test_delete_category_sets_misc(session):
             amount=80.0,
             date=date.today(),
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -190,7 +197,8 @@ def test_delete_account_cascades_transactions(session):
             amount=90.0,
             date=date.today(),
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )

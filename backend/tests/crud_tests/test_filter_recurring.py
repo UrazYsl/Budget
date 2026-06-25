@@ -13,6 +13,7 @@ DATE_APR = date(2026, 4, 1)
 def _rtx(amount, next_run_date, account_id, category_id, interval="monthly"):
     return schemas.RecurringTransactionCreate(
         amount=amount,
+        type="expense",
         next_run_date=next_run_date,
         recurring_interval=interval,
         account_id=account_id,

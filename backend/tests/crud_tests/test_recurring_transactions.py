@@ -19,7 +19,8 @@ def test_create_recurring_transaction(session):
             next_run_date=date.today(),
             recurring_interval="monthly",
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -37,7 +38,8 @@ def test_read_recurring_transactions(session):
             next_run_date=date.today(),
             recurring_interval="weekly",
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -53,7 +55,8 @@ def test_create_recurring_transaction_invalid_account(session):
                 next_run_date=date.today(),
                 recurring_interval="monthly",
                 account_id=9999,
-                category_id=category.id
+                category_id=category.id,
+                type="expense"
             ),
             session
         )
@@ -68,7 +71,8 @@ def test_create_recurring_transaction_invalid_category(session):
                 next_run_date=date.today(),
                 recurring_interval="monthly",
                 account_id=account.id,
-                category_id=9999
+                category_id=9999,
+                type="expense"
             ),
             session
         )
@@ -84,7 +88,8 @@ def test_create_recurring_transaction_invalid_interval(session):
                 next_run_date=date.today(),
                 recurring_interval="invalid",
                 account_id=account.id,
-                category_id=category.id
+                category_id=category.id,
+                type="expense"
             ),
             session
         )
@@ -99,7 +104,8 @@ def test_create_recurring_transaction_negative_amount(session):
                 next_run_date=date.today(),
                 recurring_interval="monthly",
                 account_id=account.id,
-                category_id=category.id
+                category_id=category.id,
+                type="expense"
             ),
             session
         )
@@ -114,7 +120,8 @@ def test_create_recurring_transaction_zero_amount(session):
                 next_run_date=date.today(),
                 recurring_interval="monthly",
                 account_id=account.id,
-                category_id=category.id
+                category_id=category.id,
+                type="expense"
             ),
             session
         )
@@ -128,7 +135,8 @@ def test_delete_recurring_transaction(session):
             next_run_date=date.today(),
             recurring_interval="monthly",
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -152,7 +160,8 @@ def test_delete_account_cascades_recurring_transactions(session):
             next_run_date=date.today(),
             recurring_interval="monthly",
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -172,7 +181,8 @@ def test_delete_category_cascades_recurring_transactions(session):
             next_run_date=date.today(),
             recurring_interval="monthly",
             account_id=account.id,
-            category_id=category.id
+            category_id=category.id,
+            type="expense"
         ),
         session
     )
@@ -192,6 +202,7 @@ def _make_rtx(name_suffix, session, amount=50.0, interval="monthly", next_run_da
     rtx = crud.create_recurring_transaction(
         schemas.RecurringTransactionCreate(
             amount=amount,
+            type="expense",
             next_run_date=next_run_date or date(2026, 1, 1),
             recurring_interval=interval,
             account_id=account.id,
@@ -211,6 +222,7 @@ def test_update_recurring_transaction_returns_1(session):
             recurring_interval="weekly",
             account_id=account.id,
             category_id=category.id,
+            type="expense",
         ),
         session,
     )
@@ -227,6 +239,7 @@ def test_update_recurring_transaction_nonexistent_returns_0(session):
             recurring_interval="monthly",
             account_id=account.id,
             category_id=category.id,
+            type="expense",
         ),
         session,
     )
@@ -242,6 +255,7 @@ def test_update_recurring_transaction_updates_amount(session):
             recurring_interval="monthly",
             account_id=account.id,
             category_id=category.id,
+            type="expense",
         ),
         session,
     )
@@ -259,6 +273,7 @@ def test_update_recurring_transaction_updates_interval(session):
             recurring_interval="yearly",
             account_id=account.id,
             category_id=category.id,
+            type="expense",
         ),
         session,
     )
@@ -276,6 +291,7 @@ def test_update_recurring_transaction_updates_next_run_date(session):
             recurring_interval="monthly",
             account_id=account.id,
             category_id=category.id,
+            type="expense",
         ),
         session,
     )
@@ -294,6 +310,7 @@ def test_update_recurring_transaction_updates_account(session):
             recurring_interval="monthly",
             account_id=new_account.id,
             category_id=category.id,
+            type="expense",
         ),
         session,
     )
@@ -312,6 +329,7 @@ def test_update_recurring_transaction_updates_category(session):
             recurring_interval="monthly",
             account_id=account.id,
             category_id=new_category.id,
+            type="expense",
         ),
         session,
     )
@@ -331,6 +349,7 @@ def test_update_recurring_transaction_all_fields(session):
             recurring_interval="weekly",
             account_id=new_account.id,
             category_id=new_category.id,
+            type="expense",
         ),
         session,
     )
@@ -353,6 +372,7 @@ def test_update_recurring_transaction_does_not_affect_others(session):
             recurring_interval="monthly",
             account_id=account.id,
             category_id=category.id,
+            type="expense",
         ),
         session,
     )
@@ -371,6 +391,7 @@ def test_update_recurring_transaction_invalid_account_raises(session):
                 recurring_interval="monthly",
                 account_id=9999,
                 category_id=category.id,
+                type="expense",
             ),
             session,
         )
@@ -387,6 +408,7 @@ def test_update_recurring_transaction_invalid_category_raises(session):
                 recurring_interval="monthly",
                 account_id=account.id,
                 category_id=9999,
+                type="expense",
             ),
             session,
         )

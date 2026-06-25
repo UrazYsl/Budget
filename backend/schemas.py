@@ -2,6 +2,10 @@ from datetime import date
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
 
+class TransactionType(str, Enum):
+    income = "income"
+    expense = "expense"
+
 class Interval(str, Enum):
     daily = "daily"
     weekly = "weekly"
@@ -25,6 +29,7 @@ class CategoryOut(CategoryCreate):
 class TransactionCreate(BaseModel):
     date: date
     amount: float = Field(gt=0)
+    type: TransactionType
     account_id: int
     category_id: int
 
@@ -35,7 +40,9 @@ class TransactionOut(TransactionCreate):
 class MonthlySummary(BaseModel):
     year: int
     month: int
-    total: float
+    total_income: float
+    total_expenses: float
+    net: float
     transaction_count: int
 
 class AccountBalance(BaseModel):
@@ -51,6 +58,7 @@ class CategoryTotal(BaseModel):
 
 class RecurringTransactionCreate(BaseModel):
     amount: float = Field(gt=0)
+    type: TransactionType
     recurring_interval: Interval
     next_run_date: date
     account_id: int

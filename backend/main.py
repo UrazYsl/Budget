@@ -15,6 +15,7 @@ from schemas import (
     TransactionCreate, TransactionOut,
     RecurringTransactionCreate, RecurringTransactionOut,
     MonthlySummary, AccountBalance, CategoryTotal,
+    TransactionType,
 )
 from init import init_db
 

@@ -14,6 +14,7 @@ def _make_tx(session, amount, year=YEAR, month=MONTH, day=1):
         schemas.TransactionCreate(
             date=date(year, month, day),
             amount=amount,
+            type="expense",
             account_id=account.id,
             category_id=category.id,
         ),
@@ -25,7 +26,7 @@ def _make_tx(session, amount, year=YEAR, month=MONTH, day=1):
 
 def test_monthly_summary_empty(session):
     result = crud.get_monthly_summary(session, 2000, 1)
-    assert result["total"] == 0.0
+    assert result["total_expenses"] == 0.0
     assert result["transaction_count"] == 0
 
 def test_monthly_summary_total(session):
@@ -34,7 +35,7 @@ def test_monthly_summary_total(session):
 
     result = crud.get_monthly_summary(session, YEAR, MONTH)
 
-    assert result["total"] >= 150.0
+    assert result["total_expenses"] >= 150.0
 
 def test_monthly_summary_count(session):
     before = crud.get_monthly_summary(session, YEAR, MONTH)["transaction_count"]
@@ -48,7 +49,8 @@ def test_monthly_summary_count(session):
 def test_monthly_summary_excludes_other_months(session):
     _make_tx(session, 999.0, year=YEAR, month=MONTH)
     result_other = crud.get_monthly_summary(session, YEAR, MONTH + 1)
-    assert result_other["total"] == 0.0
+    assert result_other["total_expenses"] == 0.0
+    assert result_other["total_income"] == 0.0
 
 def test_monthly_summary_returns_correct_year_and_month(session):
     result = crud.get_monthly_summary(session, YEAR, MONTH)
@@ -68,7 +70,7 @@ def test_account_balance_sums_transactions(session):
     category = crud.create_category(schemas.CategoryCreate(name="Balance Test Category"), session)
     for amount in [100.0, 200.0, 50.0]:
         crud.create_transaction(
-            schemas.TransactionCreate(date=date(YEAR, MONTH, 1), amount=amount, account_id=account.id, category_id=category.id),
+            schemas.TransactionCreate(date=date(YEAR, MONTH, 1), amount=amount, type="expense", account_id=account.id, category_id=category.id),
             session,
         )
 
@@ -103,7 +105,7 @@ def test_category_total_sums_correctly(session):
     category = crud.create_category(schemas.CategoryCreate(name="Cat Total Category"), session)
     for amount in [30.0, 70.0]:
         crud.create_transaction(
-            schemas.TransactionCreate(date=date(YEAR, MONTH, 1), amount=amount, account_id=account.id, category_id=category.id),
+            schemas.TransactionCreate(date=date(YEAR, MONTH, 1), amount=amount, type="expense", account_id=account.id, category_id=category.id),
             session,
         )
 
@@ -123,7 +125,7 @@ def test_category_total_excludes_other_months(session):
     account = crud.create_account(schemas.AccountCreate(name="Cat Excl Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Cat Excl Category"), session)
     crud.create_transaction(
-        schemas.TransactionCreate(date=date(YEAR, MONTH, 1), amount=500.0, account_id=account.id, category_id=category.id),
+        schemas.TransactionCreate(date=date(YEAR, MONTH, 1), amount=500.0, type="expense", account_id=account.id, category_id=category.id),
         session,
     )
 

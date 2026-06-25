@@ -148,10 +148,10 @@ Goal: Make recurring transactions run themselves, expose the missing filter endp
 Goal: Extend the transaction model to support income/expense distinction and receipt attachments before building the frontend.
 
 ### Step 1: Income/Expense Type
-- [ ] Add `type` enum (`income` / `expense`) to `Transaction` model and schema (required, amount stays positive and non-zero)
-- [ ] Add `type` field to `RecurringTransaction` model and schema
-- [ ] Generate and apply Alembic migration
-- [ ] Update summary endpoints to split income vs expenses (`total_income`, `total_expenses`, `net`)
+- [X] Add `type` enum (`income` / `expense`) to `Transaction` model and schema (required, amount stays positive and non-zero)
+- [X] Add `type` field to `RecurringTransaction` model and schema
+- [X] Generate and apply Alembic migration
+- [X] Update summary endpoints to split income vs expenses (`total_income`, `total_expenses`, `net`)
 
 ### Step 2: Receipt Attachments
 - [ ] Add nullable `receipt_path` column to `Transaction` model

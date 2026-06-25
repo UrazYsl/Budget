@@ -56,6 +56,7 @@ def test_delete_account_with_recurring_transactions(session):
     category = crud.create_category(schemas.CategoryCreate(name="Recurring Category"), session)
     recurring_transaction = RecurringTransaction(
         amount=100,
+        type="expense",
         recurring_interval="monthly",
         next_run_date=date(2024, 1, 1),
         account_id=account.id,

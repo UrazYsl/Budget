@@ -63,6 +63,7 @@ def create_transaction(tx, db: Session) -> Transaction:
     transaction = Transaction(
         date=tx.date,
         amount=tx.amount,
+        type=tx.type.value,
         account_id=tx.account_id,
         category_id=tx.category_id,
     )
@@ -83,6 +84,7 @@ def update_transaction(tx_id: int, tx, db: Session) -> int:
         return 0
     transaction.date = tx.date
     transaction.amount = tx.amount
+    transaction.type = tx.type.value
     transaction.account_id = tx.account_id
     transaction.category_id = tx.category_id
     db.commit()
@@ -96,6 +98,7 @@ def delete_transaction(tx_id: int, db: Session):
 def create_recurring_transaction(rtx, db: Session) -> RecurringTransaction:
     rtx_obj = RecurringTransaction(
         amount=rtx.amount,
+        type=rtx.type.value,
         recurring_interval=rtx.recurring_interval.value,
         next_run_date=rtx.next_run_date,
         account_id=rtx.account_id,
@@ -148,6 +151,7 @@ def update_recurring_transaction(rtx_id: int, rtx, db: Session) -> int:
     if recurring is None:
         return 0
     recurring.amount = rtx.amount
+    recurring.type = rtx.type.value
     recurring.recurring_interval = rtx.recurring_interval.value
     recurring.next_run_date = rtx.next_run_date
     recurring.account_id = rtx.account_id
@@ -177,6 +181,7 @@ def process_due_recurring_transactions(db: Session) -> int:
             db.add(Transaction(
                 date=rtx.next_run_date,
                 amount=rtx.amount,
+                type=rtx.type,
                 account_id=rtx.account_id,
                 category_id=rtx.category_id,
             ))
@@ -190,16 +195,28 @@ def process_due_recurring_transactions(db: Session) -> int:
 ### SUMMARIES ###
 
 def get_monthly_summary(db: Session, year: int, month: int) -> dict:
-    row = db.execute(
+    rows = db.execute(
         select(
+            Transaction.type,
             func.coalesce(func.sum(Transaction.amount), 0.0).label("total"),
             func.count(Transaction.id).label("transaction_count"),
         ).where(
             extract("year", Transaction.date) == year,
             extract("month", Transaction.date) == month,
-        )
-    ).one()
-    return {"year": year, "month": month, "total": row.total, "transaction_count": row.transaction_count}
+        ).group_by(Transaction.type)
+    ).all()
+    totals = {row.type: row.total for row in rows}
+    counts = {row.type: row.transaction_count for row in rows}
+    total_income = totals.get("income", 0.0)
+    total_expenses = totals.get("expense", 0.0)
+    return {
+        "year": year,
+        "month": month,
+        "total_income": total_income,
+        "total_expenses": total_expenses,
+        "net": total_income - total_expenses,
+        "transaction_count": sum(counts.values()),
+    }
 
 def get_account_balances(db: Session) -> list[dict]:
     rows = db.execute(

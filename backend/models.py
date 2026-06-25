@@ -49,6 +49,7 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     date = Column(Date, nullable=False)
     amount = Column(Float, nullable=False)
+    type = Column(String, nullable=False)  # income | expense
 
     # account delete -> cascade
     account_id = Column(
@@ -78,6 +79,7 @@ class RecurringTransaction(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     amount = Column(Float, nullable=False)
+    type = Column(String, nullable=False)  # income | expense
     recurring_interval = Column(String, nullable=False)  # daily, weekly, monthly, yearly
     next_run_date = Column(Date, nullable=False)
 

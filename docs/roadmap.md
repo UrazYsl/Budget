@@ -181,46 +181,122 @@ Goal: Build a browser-based UI served by the same Docker stack. Accessible from 
 - [X] Verify frontend is accessible at port 80 after `docker compose up`
 
 ### Step 3: Base Layout & Navigation
-- [ ] Build a base layout with a sidebar/navbar (Transactions, Accounts, Categories, Recurring, Dashboard)
-- [ ] Implement client-side view switching with Alpine.js (single page, no page reloads)
+- [X] Build a base layout with a sidebar/navbar (Transactions, Accounts, Categories, Recurring, Dashboard)
+- [X] Implement client-side view switching with Alpine.js (single page, no page reloads)
 
 ### Step 4: Transactions View
-- [ ] List transactions with filters (account, category, date range, type, pagination)
-- [ ] Saveable/pinned filters via `localStorage` so they persist across refreshes
-- [ ] Add transaction form (with income/expense toggle and optional receipt upload)
-- [ ] Edit and delete transaction
+- [X] List transactions with filters (account, category, date range, type, pagination)
+- [X] Saveable/pinned filters via `localStorage` so they persist across refreshes
+- [X] Add transaction form (with income/expense toggle and optional receipt upload)
+- [X] Edit and delete transaction
 
 ### Step 5: Accounts & Categories Views
-- [ ] List, add, rename, delete accounts
-- [ ] List, add, rename, delete categories
+- [X] List, add, rename, delete accounts
+- [X] List, add, rename, delete categories
 
 ### Step 6: Recurring Transactions View
-- [ ] List recurring transactions with filters
-- [ ] Add, edit, delete recurring transaction
-- [ ] Manual "Run Now" button (`POST /recurring_transactions/run`)
+- [X] List recurring transactions with filters
+- [X] Add, edit, delete recurring transaction
+- [X] Manual "Run Now" button (`POST /recurring_transactions/run`)
 
 ### Step 7: Dashboard View
-- [ ] Month picker (year + month)
-- [ ] Monthly summary (total income, total expenses, net)
-- [ ] Account balances
-- [ ] Category breakdown for selected month
+- [X] Month picker (year + month)
+- [X] Monthly summary (total income, total expenses, net) with clickable cards → filtered transactions
+- [X] Account balances
+- [X] Category breakdown for selected month
 
 ### Step 8: Settings Page
-- [ ] Add a settings view in the UI
-- [ ] Timezone selector dropdown (updates `SCHEDULER_TIMEZONE` in `.env`)
+- [X] Settings view accessible via gear icon (top-right)
+- [X] Theme toggle (dark/light, persisted to localStorage, defaults to system preference)
+- [X] Timezone display with instructions to change via `.env`
 
 ### Step 9: Setup Script
-- [ ] Write `start.sh` for Linux that auto-installs Docker if missing, copies `.env.example` to `.env` if not present, and runs `docker compose up -d`
-- [ ] Test on Ubuntu
+- [X] Write `start.sh` for Linux that auto-installs Docker if missing, copies `.env.example` to `.env` if not present, and runs `docker compose up -d`
 
 ### Step 10: Documentation
-- [ ] Update README with frontend access instructions and setup script usage
+- [X] Updated README with frontend access instructions, Quick Start section, and setup script usage
+
+### Step 11: CSV Export
+- [X] Export button in transactions view — fetches all transactions matching current filters, downloads as `.csv`
+
+### Step 12: Budget Targets
+- [X] `budgets` table (one per category, monthly limit)
+- [X] `GET/POST /budgets` and `DELETE /budgets/{id}` endpoints
+- [X] Set/remove budget per category in the Categories view
+- [X] Dashboard category breakdown shows progress bar and `$spent / $limit`
+
+### Step 13: Amount Filter
+- [X] `min_amount` / `max_amount` query params on `GET /transactions` (backend)
+- [X] Min $ / Max $ inputs in the transactions filter bar (frontend)
+
+### Step 14: Browser Back Button
+- [X] Integrate History API (`pushState`/`popstate`) so back/forward buttons navigate between internal views instead of leaving the site
+
+### Step 15: Upcoming Recurring on Dashboard
+- [X] `GET /summary/upcoming?days=7` endpoint returning recurring transactions due within N days
+- [X] "Upcoming in 7 Days" table on the dashboard (hidden when empty)
+
+### Step 16: Month-over-Month Comparison
+- [X] Dashboard fetches previous month's summary alongside current month
+- [X] Income and expense cards show ±X% vs last month in context-aware colour (green = good, red = bad, inverted for expenses)
+
+### Step 17: Database Backup
+- [X] `GET /backup/db` endpoint — runs `pg_dump` inside the container and streams a timestamped `.sql` file
+- [X] "Download Backup" button in Settings page
 
 ---
 
-## What's Next (Later)
-|    Phase    | Description           |
-|-------------|-----------------------|
-| **Phase 7** | Styling pass          |
-|-------------|-----------------------|
-| **Phase 8** | Deploy to server      |
+## Phase 7: Styling Pass
+
+Goal: Make the app look and feel polished, and work well on all screen sizes.
+
+### Step 1: Responsive layout (media queries)
+- [X] Sidebar becomes a slide-in drawer on mobile with a hamburger button (☰)
+- [X] Tables scroll horizontally on small screens
+- [X] Modal goes full-width on mobile
+- [X] Dashboard cards stack vertically on mobile
+- [X] Filters stack vertically on mobile
+
+### Step 2: Visual polish
+- [X] Typography, spacing, color refinements
+- [X] Dashboard layout improvements
+
+---
+
+## Phase 8: Pre-deploy Polish (can do before server)
+
+### Step 1: .dockerignore
+- [X] Add `backend/.dockerignore` to keep `.env`, `__pycache__`, test files, and `*.pyc` out of the Docker image (faster builds, no secrets leaked into image layers)
+
+### Step 2: GitHub Actions CI
+- [X] `.github/workflows/test.yml` — spins up a Postgres service container, sets `TEST_DATABASE_URL`, runs the full `pytest` suite on every push and pull request
+
+### Step 3: Port 80 conflict check
+- [X] `start.sh` warns if port 80 is in use by a non-Docker process before starting the stack
+
+### Step 4: Automatic daily backups
+- [X] `backup.sh` — dumps the database with `pg_dump`, saves to `~/budget-backups/`, prunes files older than 30 days
+- [X] `start.sh` registers `backup.sh` as a daily 2 AM cron job on first run
+
+### Step 5: Restore instructions
+- [X] README documents how to restore from a `.sql` backup using `psql` inside the running container
+
+### Step 6: Extended tests
+- [X] `test_upcoming.py` — 7 tests for `get_upcoming_recurring` (today, within window, boundary, beyond, past, custom days, ordering)
+- [X] `test_summaries.py` — income/expense split and net = income − expenses
+- [X] `test_filter.py` — type filter (income, expense, type + date range combination)
+
+---
+
+## Phase 9: Deploy to server
+
+- [X] Hostname set automatically by `start.sh` from `APP_HOSTNAME` in `.env` (default: `budget`)
+- [ ] Run `./start.sh` on the Ubuntu server (installs Docker + Avahi, sets hostname, starts the stack)
+- [ ] Verify app is accessible at `http://budget.local` from another device on the LAN
+
+### Optional: Remote access via Tailscale
+Access the app from outside your home network (phone data, work wifi, etc.) for free with no port forwarding or router config.
+- [ ] Create a free Tailscale account at tailscale.com
+- [ ] Install on the server: `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up`
+- [ ] Install the Tailscale app on your phone/laptop and sign in with the same account
+- [ ] Access the app at the server's Tailscale IP (shown in the Tailscale dashboard) from anywhere

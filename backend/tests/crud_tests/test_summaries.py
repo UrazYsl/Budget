@@ -121,6 +121,35 @@ def test_category_total_zero_for_empty_month(session):
     if match:
         assert match["total"] == 0.0
 
+def test_monthly_summary_income_and_expense_split(session):
+    account = crud.create_account(schemas.AccountCreate(name="SumSplit Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="SumSplit Category"), session)
+    crud.create_transaction(
+        schemas.TransactionCreate(date=date(YEAR, MONTH, 3), amount=200.0, type="income", account_id=account.id, category_id=category.id),
+        session,
+    )
+    crud.create_transaction(
+        schemas.TransactionCreate(date=date(YEAR, MONTH, 3), amount=80.0, type="expense", account_id=account.id, category_id=category.id),
+        session,
+    )
+    result = crud.get_monthly_summary(session, YEAR, MONTH)
+    assert result["total_income"] >= 200.0
+    assert result["total_expenses"] >= 80.0
+
+def test_monthly_summary_net_equals_income_minus_expenses(session):
+    account = crud.create_account(schemas.AccountCreate(name="SumNet Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="SumNet Category"), session)
+    crud.create_transaction(
+        schemas.TransactionCreate(date=date(YEAR, MONTH, 4), amount=300.0, type="income", account_id=account.id, category_id=category.id),
+        session,
+    )
+    crud.create_transaction(
+        schemas.TransactionCreate(date=date(YEAR, MONTH, 4), amount=100.0, type="expense", account_id=account.id, category_id=category.id),
+        session,
+    )
+    result = crud.get_monthly_summary(session, YEAR, MONTH)
+    assert result["net"] == result["total_income"] - result["total_expenses"]
+
 def test_category_total_excludes_other_months(session):
     account = crud.create_account(schemas.AccountCreate(name="Cat Excl Account"), session)
     category = crud.create_category(schemas.CategoryCreate(name="Cat Excl Category"), session)

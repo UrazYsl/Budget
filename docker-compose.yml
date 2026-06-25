@@ -29,6 +29,7 @@ services:
     volumes:
       - ./backend/alembic/versions:/app/alembic/versions
       - receipts:/app/receipts
+      - appdata:/app/data
     command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
 
   frontend:
@@ -45,3 +46,4 @@ services:
 volumes:
   pgdata:
   receipts:
+  appdata:

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import select, delete, func, extract
 from sqlalchemy.orm import Session
-from models import Account, Category, Transaction, RecurringTransaction
+from models import Account, Budget, Category, Transaction, RecurringTransaction
 from schemas import AccountCreate, CategoryCreate
 
 def create_account(account: AccountCreate, db: Session) -> Account:
@@ -242,6 +242,16 @@ def get_account_balances(db: Session) -> list[dict]:
     ).all()
     return [{"account_id": r.account_id, "account_name": r.account_name, "balance": r.balance} for r in rows]
 
+def get_upcoming_recurring(db: Session, days: int = 7) -> list[RecurringTransaction]:
+    today = date.today()
+    cutoff = today + timedelta(days=days)
+    return db.scalars(
+        select(RecurringTransaction)
+        .where(RecurringTransaction.next_run_date >= today)
+        .where(RecurringTransaction.next_run_date <= cutoff)
+        .order_by(RecurringTransaction.next_run_date.asc())
+    ).all()
+
 def get_category_totals(db: Session, year: int, month: int) -> list[dict]:
     rows = db.execute(
         select(
@@ -268,8 +278,11 @@ def read_transactions_filtered(
     db: Session,
     account_id: int | None = None,
     category_id: int | None = None,
+    tx_type: str | None = None,
     start_date: date | None = None,
     end_date: date | None = None,
+    min_amount: float | None = None,
+    max_amount: float | None = None,
     limit: int | None = None,
     offset: int = 0,
 ) -> list[Transaction]:
@@ -278,11 +291,40 @@ def read_transactions_filtered(
         stmt = stmt.where(Transaction.account_id == account_id)
     if category_id is not None:
         stmt = stmt.where(Transaction.category_id == category_id)
+    if tx_type is not None:
+        stmt = stmt.where(Transaction.type == tx_type)
     if start_date is not None:
         stmt = stmt.where(Transaction.date >= start_date)
     if end_date is not None:
         stmt = stmt.where(Transaction.date <= end_date)
+    if min_amount is not None:
+        stmt = stmt.where(Transaction.amount >= min_amount)
+    if max_amount is not None:
+        stmt = stmt.where(Transaction.amount <= max_amount)
     stmt = stmt.order_by(Transaction.date.desc(), Transaction.id.desc()).offset(offset)
     if limit is not None:
         stmt = stmt.limit(limit)
     return db.scalars(stmt).all()
+
+
+def get_budgets(db: Session) -> list[Budget]:
+    return db.scalars(select(Budget).order_by(Budget.category_id)).all()
+
+def upsert_budget(db: Session, category_id: int, amount: float) -> Budget:
+    b = db.scalars(select(Budget).where(Budget.category_id == category_id)).first()
+    if b:
+        b.amount = amount
+    else:
+        b = Budget(category_id=category_id, amount=amount)
+        db.add(b)
+    db.commit()
+    db.refresh(b)
+    return b
+
+def delete_budget(db: Session, budget_id: int) -> int:
+    b = db.get(Budget, budget_id)
+    if b is None:
+        return 0
+    db.delete(b)
+    db.commit()
+    return 1

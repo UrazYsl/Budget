@@ -425,3 +425,172 @@ def test_pagination_with_filters(session):
     assert len(page1) == 2
     assert len(page2) == 2
     assert all(t.category_id == category.id for t in page1 + page2)
+
+
+# --- amount filters ---
+
+def test_filter_by_type_income(session):
+    account = crud.create_account(schemas.AccountCreate(name="FTypInc Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FTypInc Category"), session)
+    tx_income = crud.create_transaction(
+        schemas.TransactionCreate(amount=50.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="income"),
+        session,
+    )
+    tx_expense = crud.create_transaction(
+        schemas.TransactionCreate(amount=30.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    results = crud.read_transactions_filtered(session, account_id=account.id, tx_type="income")
+    ids = [t.id for t in results]
+    assert tx_income.id in ids
+    assert tx_expense.id not in ids
+
+def test_filter_by_type_expense(session):
+    account = crud.create_account(schemas.AccountCreate(name="FTypExp Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FTypExp Category"), session)
+    tx_income = crud.create_transaction(
+        schemas.TransactionCreate(amount=50.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="income"),
+        session,
+    )
+    tx_expense = crud.create_transaction(
+        schemas.TransactionCreate(amount=30.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    results = crud.read_transactions_filtered(session, account_id=account.id, tx_type="expense")
+    ids = [t.id for t in results]
+    assert tx_expense.id in ids
+    assert tx_income.id not in ids
+
+def test_filter_type_with_date_range(session):
+    account = crud.create_account(schemas.AccountCreate(name="FTypDate Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FTypDate Category"), session)
+    tx_match = crud.create_transaction(
+        schemas.TransactionCreate(amount=40.0, date=DATE_FEB, account_id=account.id, category_id=category.id, type="income"),
+        session,
+    )
+    tx_wrong_type = crud.create_transaction(
+        schemas.TransactionCreate(amount=40.0, date=DATE_FEB, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_wrong_date = crud.create_transaction(
+        schemas.TransactionCreate(amount=40.0, date=DATE_APR, account_id=account.id, category_id=category.id, type="income"),
+        session,
+    )
+    results = crud.read_transactions_filtered(
+        session, account_id=account.id, tx_type="income", start_date=DATE_JAN, end_date=DATE_MAR
+    )
+    ids = [t.id for t in results]
+    assert tx_match.id in ids
+    assert tx_wrong_type.id not in ids
+    assert tx_wrong_date.id not in ids
+
+def test_filter_min_amount_includes_at_and_above(session):
+    account = crud.create_account(schemas.AccountCreate(name="FMinA Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FMinA Category"), session)
+    tx_low = crud.create_transaction(
+        schemas.TransactionCreate(amount=10.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_exact = crud.create_transaction(
+        schemas.TransactionCreate(amount=50.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_high = crud.create_transaction(
+        schemas.TransactionCreate(amount=100.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    results = crud.read_transactions_filtered(session, account_id=account.id, min_amount=50.0)
+    ids = [t.id for t in results]
+    assert tx_exact.id in ids
+    assert tx_high.id in ids
+    assert tx_low.id not in ids
+
+def test_filter_max_amount_includes_at_and_below(session):
+    account = crud.create_account(schemas.AccountCreate(name="FMaxA Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FMaxA Category"), session)
+    tx_low = crud.create_transaction(
+        schemas.TransactionCreate(amount=10.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_exact = crud.create_transaction(
+        schemas.TransactionCreate(amount=50.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_high = crud.create_transaction(
+        schemas.TransactionCreate(amount=100.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    results = crud.read_transactions_filtered(session, account_id=account.id, max_amount=50.0)
+    ids = [t.id for t in results]
+    assert tx_low.id in ids
+    assert tx_exact.id in ids
+    assert tx_high.id not in ids
+
+def test_filter_amount_range(session):
+    account = crud.create_account(schemas.AccountCreate(name="FAmtR Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FAmtR Category"), session)
+    tx_5 = crud.create_transaction(
+        schemas.TransactionCreate(amount=5.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_25 = crud.create_transaction(
+        schemas.TransactionCreate(amount=25.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_75 = crud.create_transaction(
+        schemas.TransactionCreate(amount=75.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_200 = crud.create_transaction(
+        schemas.TransactionCreate(amount=200.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    results = crud.read_transactions_filtered(session, account_id=account.id, min_amount=20.0, max_amount=100.0)
+    ids = [t.id for t in results]
+    assert tx_25.id in ids
+    assert tx_75.id in ids
+    assert tx_5.id not in ids
+    assert tx_200.id not in ids
+
+def test_filter_min_amount_above_all_returns_empty(session):
+    account = crud.create_account(schemas.AccountCreate(name="FMinE Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FMinE Category"), session)
+    crud.create_transaction(
+        schemas.TransactionCreate(amount=10.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    results = crud.read_transactions_filtered(session, account_id=account.id, min_amount=9999.0)
+    assert results == []
+
+def test_filter_max_amount_below_all_returns_empty(session):
+    account = crud.create_account(schemas.AccountCreate(name="FMaxE Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FMaxE Category"), session)
+    crud.create_transaction(
+        schemas.TransactionCreate(amount=100.0, date=DATE_JAN, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    results = crud.read_transactions_filtered(session, account_id=account.id, max_amount=0.01)
+    assert results == []
+
+def test_filter_amount_combined_with_date(session):
+    account = crud.create_account(schemas.AccountCreate(name="FAmtD Account"), session)
+    category = crud.create_category(schemas.CategoryCreate(name="FAmtD Category"), session)
+    tx_match = crud.create_transaction(
+        schemas.TransactionCreate(amount=50.0, date=DATE_FEB, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_wrong_amount = crud.create_transaction(
+        schemas.TransactionCreate(amount=5.0, date=DATE_FEB, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    tx_wrong_date = crud.create_transaction(
+        schemas.TransactionCreate(amount=50.0, date=DATE_APR, account_id=account.id, category_id=category.id, type="expense"),
+        session,
+    )
+    results = crud.read_transactions_filtered(
+        session, account_id=account.id, min_amount=20.0, start_date=DATE_JAN, end_date=DATE_MAR
+    )
+    ids = [t.id for t in results]
+    assert tx_match.id in ids
+    assert tx_wrong_amount.id not in ids
+    assert tx_wrong_date.id not in ids

@@ -77,3 +77,6 @@ Storing binary files in PostgreSQL (as BLOBs) bloats the database and makes back
 
 **nginx to serve the frontend**
 Static files need a web server. nginx is lightweight, standard, and trivial to add as a Docker container.
+
+**No authentication**
+This is a self-hosted personal app on a private LAN. Adding auth (login page, session management, password storage) would add significant complexity for zero real benefit — no one else is on the network, and the data isn't sensitive enough to warrant it. If the server is ever exposed to the internet, HTTP Basic Auth via nginx is the simplest retrofit.

@@ -57,6 +57,19 @@ class CategoryTotal(BaseModel):
     total: float
 
 
+class SettingsUpdate(BaseModel):
+    timezone: str
+
+
+class BudgetCreate(BaseModel):
+    category_id: int
+    amount: float = Field(gt=0)
+
+class BudgetOut(BudgetCreate):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
+
 class RecurringTransactionCreate(BaseModel):
     amount: float = Field(gt=0)
     type: TransactionType

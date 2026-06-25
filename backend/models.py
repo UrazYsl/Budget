@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey, Numeric
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -72,6 +72,14 @@ class Transaction(Base):
 
     account = relationship("Account", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")
+
+
+class Budget(Base):
+    __tablename__ = "budgets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), unique=True, nullable=False)
+    amount = Column(Numeric(12, 2), nullable=False)
 
 
 class RecurringTransaction(Base):

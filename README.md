@@ -360,5 +360,5 @@ docker compose down
 
 > If you wipe the volume with `docker compose down -v`, you'll need to recreate the test database again.
 
-See [docs/roadmap.md](docs/roadmap.md) for the full development plan.
+See [docs/roadmap.md](docs/roadmap.md) for the full development plan and [docs/decisions.md](docs/decisions.md) for design decisions and the reasoning behind them.
 

@@ -1,4 +1,4 @@
-const API = `http://${location.hostname}:8000`
+const API = '/api'
 
 function app() {
     return {

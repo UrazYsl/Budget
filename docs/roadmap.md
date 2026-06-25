@@ -177,8 +177,8 @@ Goal: Build a browser-based UI served by the same Docker stack. Accessible from 
 - [X] Add Alpine.js via CDN (no npm, no build step)
 
 ### Step 2: Docker Integration
-- [ ] Add nginx container to `docker-compose.yml` to serve the `frontend/` directory
-- [ ] Verify frontend is accessible at port 80 after `docker compose up`
+- [X] Add nginx container to `docker-compose.yml` to serve the `frontend/` directory
+- [X] Verify frontend is accessible at port 80 after `docker compose up`
 
 ### Step 3: Base Layout & Navigation
 - [ ] Build a base layout with a sidebar/navbar (Transactions, Accounts, Categories, Recurring, Dashboard)

@@ -6,21 +6,21 @@ A lightweight, self-hosted personal budgeting web app designed to run on a home 
 
 ## Status
 
-- **Phase 1 (Backend setup):** Complete - FastAPI app, DB connection, CRUD, schemas, database models (Account, Category, Transaction), and transaction endpoint.
-- **Phase 2 (Environment & Initialization):** Complete - Docker integration and reproducible database setup.
-- **Phase 3 (Core API Expansion):** Complete — full CRUD for accounts, categories, transactions, and recurring transactions with filtering and pagination.
-- **Phase 4 (Automation & Summaries):** Complete — recurring transaction processor with APScheduler (runs daily at midnight Toronto time + on startup), summary endpoints for monthly totals, account balances, and category breakdowns.
-- **Phase 5 (Model Expansion):** Complete — income/expense `type` field on transactions and recurring transactions, receipt image attachments.
-- **Phase 6 (Web Frontend):** Complete — Alpine.js + HTML/CSS frontend served via nginx in Docker, with full CRUD views, dark/light theme, responsive layout, dashboard with live clock, income/expense ring, budget progress bars, month-over-month comparison, upcoming recurring transactions, CSV export, and database backup download.
-- **Phase 7 (Styling):** Planned — visual polish pass on the frontend.
-- **Phase 8 (Pre-deploy polish):** Planned — `.dockerignore`, GitHub Actions CI, tests for new endpoints.
-- **Phase 9 (Deploy):** Planned — deploy to Ubuntu home server.
+- **Phase 1 (Backend setup):** Complete. FastAPI app, DB connection, CRUD, schemas, database models (Account, Category, Transaction), and transaction endpoint.
+- **Phase 2 (Environment & Initialization):** Complete. Docker integration and reproducible database setup.
+- **Phase 3 (Core API Expansion):** Complete. Full CRUD for accounts, categories, transactions, and recurring transactions with filtering and pagination.
+- **Phase 4 (Automation & Summaries):** Complete. Recurring transaction processor with APScheduler (runs daily at midnight Toronto time + on startup), summary endpoints for monthly totals, account balances, and category breakdowns.
+- **Phase 5 (Model Expansion):** Complete. Income/expense `type` field on transactions and recurring transactions, receipt image attachments.
+- **Phase 6 (Web Frontend):** Complete. Alpine.js + HTML/CSS frontend served via nginx in Docker, with full CRUD views, dark/light theme, responsive layout, dashboard with live clock, income/expense ring, budget progress bars, month-over-month comparison, upcoming recurring transactions, CSV export, and database backup download.
+- **Phase 7 (Styling):** Planned. Visual polish pass on the frontend.
+- **Phase 8 (Pre-deploy polish):** Planned. `.dockerignore`, GitHub Actions CI, tests for new endpoints.
+- **Phase 9 (Deploy):** Planned. Deploy to Ubuntu home server.
 
 ## Quick Start (Linux/Ubuntu)
 
 ```bash
 git clone https://github.com/UrazYsl/Budget.git
-cd Budgeting-App
+cd Budget
 chmod +x start.sh
 ./start.sh
 ```
@@ -49,7 +49,7 @@ No IP address to remember, no router configuration, no cost. To use a different 
 
 The Quick Start above assumes Docker is installed. If it isn't:
 
-### Linux (Ubuntu/Debian) — recommended
+### Linux (Ubuntu/Debian), recommended
 
 ```bash
 sudo apt install docker.io docker-compose-v2
@@ -73,7 +73,7 @@ Run the two commands above again, or log out and log back in.
 <details>
 <summary>Windows / macOS</summary>
 
-Windows and macOS aren't the target environment — `start.sh`, the `.local` hostname setup, and the daily backup cron job are Linux-only. The app itself still runs anywhere Docker does, but you'll set up hostname access and backups manually.
+Windows and macOS aren't the target environment. `start.sh`, the `.local` hostname setup, and the daily backup cron job are Linux-only. The app itself still runs anywhere Docker does, but you'll set up hostname access and backups manually.
 
 1. Install [Docker Desktop](https://docs.docker.com/desktop/) and wait for it to finish loading
 2. Run the stack manually with `docker compose up --build`
@@ -103,7 +103,7 @@ Then adjust the values:
 | `DATABASE_URL` | Full DB connection string (update user/password to match above) |
 | `TEST_DATABASE_URL` | Test DB connection string (same but points to `budgeting_test`) |
 | `SCHEDULER_TIMEZONE` | Timezone for the daily recurring transaction job (e.g. `America/Toronto`, `Europe/Istanbul`, `UTC`) |
-| `APP_HOSTNAME` | Machine hostname `start.sh` will set (default: `budget` → accessible at `http://budget.local`) |
+| `APP_HOSTNAME` | Machine hostname `start.sh` will set (default: `budget`, accessible at `http://budget.local`) |
 
 Docker Compose automatically loads variables from `.env`.
 
@@ -292,7 +292,7 @@ curl -X PUT http://localhost:8000/recurring_transactions/1 \
 |--------|------|-------------|
 | POST | `/recurring_transactions/run` | Process all due recurring transactions now |
 
-Returns `{"created": N}` — the number of real transactions created. Also runs automatically on startup and daily at midnight (Toronto time).
+Returns `{"created": N}`, the number of real transactions created. Also runs automatically on startup and daily at midnight (Toronto time).
 
 ### Budgets
 
@@ -302,7 +302,7 @@ Returns `{"created": N}` — the number of real transactions created. Also runs 
 | POST | `/budgets` | Create or update a monthly budget for a category |
 | DELETE | `/budgets/{id}` | Remove a budget |
 
-Budgets are per-category monthly limits. `POST /budgets` is an upsert — posting for the same category again updates the existing budget. Budgets are automatically deleted when their category is deleted.
+Budgets are per-category monthly limits. `POST /budgets` is an upsert: posting for the same category again updates the existing budget. Budgets are automatically deleted when their category is deleted.
 
 ```bash
 # Set a $400/month budget for category 2
@@ -325,7 +325,7 @@ curl -X POST http://localhost/api/budgets \
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `year` | int | Year (e.g. 2026) |
-| `month` | int | Month (1–12) |
+| `month` | int | Month (1 to 12) |
 
 **GET `/summary/upcoming` query parameters:**
 
@@ -412,7 +412,7 @@ docker compose up --build
 
 Tests use a separate `budgeting_test` database inside the same PostgreSQL container.
 
-> **Python packages** — inside Docker all packages install automatically. For running tests locally on your machine you need to install them manually once:
+> **Python packages**: inside Docker all packages install automatically. For running tests locally on your machine you need to install them manually once:
 > ```bash
 > python3 -m pip install fastapi uvicorn sqlalchemy "psycopg[binary]" alembic python-dateutil apscheduler python-multipart pytest python-dotenv
 > ```
@@ -462,6 +462,6 @@ docker compose down
 
 > If you wipe the volume with `docker compose down -v`, you'll need to recreate the test database again.
 
-**No authentication** — this app has no login. It is intentionally designed for private LAN use only. Do not expose port 80 to the internet without adding auth first (see [docs/decisions.md](docs/decisions.md)).
+**No authentication**: this app has no login. It is intentionally designed for private LAN use only. Do not expose port 80 to the internet without adding auth first (see [docs/decisions.md](docs/decisions.md)).
 
 See [docs/roadmap.md](docs/roadmap.md) for the full development plan and [docs/decisions.md](docs/decisions.md) for design decisions and the reasoning behind them.

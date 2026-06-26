@@ -1,6 +1,6 @@
-# Budgeting-App
+# Budget
 
-A self-hosted personal budgeting web app. FastAPI backend + Alpine.js frontend, served via Docker. Accessible from any browser on your network.
+A lightweight, self-hosted personal budgeting web app designed to run on a home Ubuntu server. FastAPI backend + Alpine.js frontend, fully Dockerized; one script installs everything and serves it on your LAN.
 
 **Stack:** FastAPI (Python), PostgreSQL, Alpine.js, HTML/CSS, nginx, Docker
 
@@ -19,7 +19,7 @@ A self-hosted personal budgeting web app. FastAPI backend + Alpine.js frontend, 
 ## Quick Start (Linux/Ubuntu)
 
 ```bash
-git clone https://github.com/UrazYsl/Budgeting-App.git
+git clone https://github.com/UrazYsl/Budget.git
 cd Budgeting-App
 chmod +x start.sh
 ./start.sh
@@ -47,17 +47,10 @@ No IP address to remember, no router configuration, no cost. To use a different 
 
 ## Prerequisites
 
-### Installing Docker
+The Quick Start above assumes Docker is installed. If it isn't:
 
-**Windows**
-1. Download and install [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/)
-2. Start Docker Desktop and wait for it to finish loading before running any commands
+### Linux (Ubuntu/Debian) — recommended
 
-**macOS**
-1. Download and install [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/)
-2. Start Docker Desktop and wait for it to finish loading
-
-**Linux (Ubuntu/Debian)**
 ```bash
 sudo apt install docker.io docker-compose-v2
 sudo usermod -aG docker $USER
@@ -66,21 +59,27 @@ newgrp docker
 
 > After installing, close and reopen your terminal (or run `newgrp docker`) before running `docker compose`.
 
-- Docker must be running before executing `docker compose up`
-- You do not need to log into Docker or create any database manually.
-
 If you get:
+
 ```
 permission denied while trying to connect to the Docker daemon socket
 ```
 
-Run:
-```bash
-sudo usermod -aG docker $USER
-newgrp docker
-```
-Or log out and log back in.
+Run the two commands above again, or log out and log back in.
 
+- Docker must be running before executing `docker compose up`
+- You do not need to log into Docker or create any database manually
+
+<details>
+<summary>Windows / macOS</summary>
+
+Windows and macOS aren't the target environment — `start.sh`, the `.local` hostname setup, and the daily backup cron job are Linux-only. The app itself still runs anywhere Docker does, but you'll set up hostname access and backups manually.
+
+1. Install [Docker Desktop](https://docs.docker.com/desktop/) and wait for it to finish loading
+2. Run the stack manually with `docker compose up --build`
+3. Access the app at `http://localhost`
+
+</details>
 
 ## Environment Configuration
 
@@ -108,7 +107,6 @@ Then adjust the values:
 
 Docker Compose automatically loads variables from `.env`.
 
-
 ### Run the full stack
 
 From the project root:
@@ -126,7 +124,6 @@ This will:
 **API docs (Swagger):** http://localhost/api/docs  
 **Direct API (no nginx):** http://localhost:8000/docs
 
-
 ## Database & migrations
 
 This project uses **Alembic** for schema management.
@@ -137,7 +134,6 @@ When you run:
 docker compose up --build
 ```
 The backend automatically runs alembic upgrade head on startup.
-
 
 ## If You Change Database Models
 
@@ -469,4 +465,3 @@ docker compose down
 **No authentication** — this app has no login. It is intentionally designed for private LAN use only. Do not expose port 80 to the internet without adding auth first (see [docs/decisions.md](docs/decisions.md)).
 
 See [docs/roadmap.md](docs/roadmap.md) for the full development plan and [docs/decisions.md](docs/decisions.md) for design decisions and the reasoning behind them.
-

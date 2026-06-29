@@ -15,6 +15,12 @@ if ! command -v docker &>/dev/null; then
     echo ""
 fi
 
+# ── Ensure Docker daemon starts on boot ──
+if ! sudo systemctl is-enabled docker &>/dev/null; then
+    echo "Enabling Docker daemon to start on boot..."
+    sudo systemctl enable docker
+fi
+
 # ── Avahi (local hostname, e.g. http://budget.local) ──
 if ! command -v avahi-daemon &>/dev/null; then
     echo "Installing avahi-daemon for local hostname access..."
@@ -48,11 +54,11 @@ if [ "$(hostname)" != "$APP_HOSTNAME" ]; then
     sudo hostnamectl set-hostname "$APP_HOSTNAME"
 fi
 
-# ── Port 80 conflict check ──
-if ss -tlnp 2>/dev/null | grep -q ':80 '; then
-    if ! docker ps --format '{{.Ports}}' 2>/dev/null | grep -q '0.0.0.0:80->'; then
-        echo "WARNING: Port 80 is already in use by a non-Docker process."
-        echo "  → Stop it first, or change '80:80' to e.g. '8080:80' in docker-compose.yml."
+# ── Port 8084 conflict check ──
+if ss -tlnp 2>/dev/null | grep -q ':8084 '; then
+    if ! docker ps --format '{{.Ports}}' 2>/dev/null | grep -q '0.0.0.0:8084->'; then
+        echo "WARNING: Port 8084 is already in use by a non-Docker process."
+        echo "  → Stop it first, or change '8084:80' in docker-compose.yml."
         echo ""
     fi
 fi
@@ -70,7 +76,7 @@ fi
 
 echo ""
 echo "App is running at:"
-echo "  http://localhost              (on this machine)"
-echo "  http://${APP_HOSTNAME}.local  (from any device on the network)"
+echo "  http://localhost:8084              (on this machine)"
+echo "  http://${APP_HOSTNAME}.local:8084  (from any device on the network)"
 echo ""
-echo "API docs: http://localhost/api/docs"
+echo "API docs: http://localhost:8084/api/docs"

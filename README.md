@@ -12,9 +12,9 @@ A lightweight, self-hosted personal budgeting web app designed to run on a home 
 - **Phase 4 (Automation & Summaries):** Complete. Recurring transaction processor with APScheduler (runs daily at midnight Toronto time + on startup), summary endpoints for monthly totals, account balances, and category breakdowns.
 - **Phase 5 (Model Expansion):** Complete. Income/expense `type` field on transactions and recurring transactions, receipt image attachments.
 - **Phase 6 (Web Frontend):** Complete. Alpine.js + HTML/CSS frontend served via nginx in Docker, with full CRUD views, dark/light theme, responsive layout, dashboard with live clock, income/expense ring, budget progress bars, month-over-month comparison, upcoming recurring transactions, CSV export, and database backup download.
-- **Phase 7 (Styling):** Planned. Visual polish pass on the frontend.
-- **Phase 8 (Pre-deploy polish):** Planned. `.dockerignore`, GitHub Actions CI, tests for new endpoints.
-- **Phase 9 (Deploy):** Planned. Deploy to Ubuntu home server.
+- **Phase 7 (Styling):** Complete. Responsive layout (mobile drawer, stacked cards, horizontal table scroll), typography and spacing polish.
+- **Phase 8 (Pre-deploy polish):** Complete. `.dockerignore`, GitHub Actions CI, extended test suite, automatic daily backups, restore instructions.
+- **Phase 9 (Deploy):** Complete. Deployed to Ubuntu home server; Docker daemon enabled on boot so containers survive power loss; Tailscale + Cloudflare DNS for remote access.
 
 ## Quick Start (Linux/Ubuntu)
 
@@ -25,15 +25,19 @@ chmod +x start.sh
 ./start.sh
 ```
 
-This script will:
-- Install Docker if it's not already installed (Ubuntu/Debian only)
+On first run the script creates `.env` from `.env.example` and exits — **edit `.env` before continuing** (set your password and timezone), then run `./start.sh` again.
+
+After that, the script will:
+- Install Docker if not already present (Ubuntu/Debian only) and enable it to start on boot
 - Install `avahi-daemon` if not present (enables `http://hostname.local` access from any device)
-- Copy `.env.example` to `.env` if no `.env` exists
+- Install Tailscale if not already present (enables remote access from anywhere)
+- Set the machine hostname from `APP_HOSTNAME` in `.env`
 - Build and start all containers in the background
+- Register a daily 2 AM backup cron job
 
 ### Accessing from other devices on your network
 
-The script installs [Avahi](https://avahi.org/) and automatically sets the machine hostname from `APP_HOSTNAME` in your `.env` (default: `budget`). After running `start.sh`, every device on your LAN can reach the app at:
+The script automatically sets the machine hostname from `APP_HOSTNAME` in your `.env` (default: `budget`). After running `start.sh`, every device on your LAN can reach the app at:
 
 ```
 http://budget.local
@@ -41,7 +45,15 @@ http://budget.local
 
 No IP address to remember, no router configuration, no cost. To use a different hostname, edit `.env` and change `APP_HOSTNAME=budget` before running `start.sh`.
 
-> On first run, edit `.env` to set your timezone and database password before starting, or stop the stack (`docker compose down -v`), edit `.env`, and run `./start.sh` again.
+### Remote access via Tailscale
+
+`start.sh` installs [Tailscale](https://tailscale.com/) automatically. To activate it, run once after setup:
+
+```bash
+sudo tailscale up
+```
+
+Open the URL it prints and sign in. Then install Tailscale on your phone or laptop and sign in with the same account. The app is then reachable at the server's Tailscale IP from anywhere — no port forwarding required.
 
 ---
 

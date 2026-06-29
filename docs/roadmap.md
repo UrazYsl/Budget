@@ -292,10 +292,10 @@ Goal: Make the app look and feel polished, and work well on all screen sizes.
 
 - [X] Hostname set automatically by `start.sh` from `APP_HOSTNAME` in `.env` (default: `budget`)
 - [X] `start.sh` enables Docker daemon via `systemctl enable docker` so containers survive power loss / reboot
-- [ ] Run `./start.sh` on the Ubuntu server (installs Docker + Avahi, sets hostname, starts the stack)
+- [X] Run `./start.sh` on the Ubuntu server (installs Docker + Avahi, sets hostname, starts the stack)
 - [ ] Verify app is accessible at `http://budget.local` from another device on the LAN
 
-### Optional: Remote access via Tailscale
+### Phase 10: Remote access via Tailscale
 Access the app from outside your home network (phone data, work wifi, etc.) for free with no port forwarding or router config.
 - [ ] Create a free Tailscale account at tailscale.com
 - [ ] Install on the server: `curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up`

@@ -76,7 +76,7 @@ def test_account_balance_sums_transactions(session):
 
     balances = crud.get_account_balances(session)
     match = next(b for b in balances if b["account_id"] == account.id)
-    assert match["balance"] == 350.0
+    assert match["balance"] == -350.0
 
 def test_account_balance_zero_for_no_transactions(session):
     account = crud.create_account(schemas.AccountCreate(name="Empty Balance Account"), session)

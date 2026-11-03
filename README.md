@@ -1,5 +1,7 @@
 # Budget
 
+![Budget dashboard, transactions and recurring views (demo data)](docs/demo.gif)
+
 A lightweight, self-hosted personal budgeting web app designed to run on a home Ubuntu server. FastAPI backend + Alpine.js frontend, fully Dockerized; one script installs everything and serves it on your LAN.
 
 ```bash

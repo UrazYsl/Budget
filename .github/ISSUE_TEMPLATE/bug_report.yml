@@ -1,0 +1,42 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How do you run Budget?
+      options:
+        - start.sh
+        - docker compose
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS and browser
+      placeholder: Ubuntu 24.04, Firefox 140
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `docker compose logs backend` around the error, if relevant.
+      render: shell

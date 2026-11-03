@@ -2,6 +2,12 @@
 
 A lightweight, self-hosted personal budgeting web app designed to run on a home Ubuntu server. FastAPI backend + Alpine.js frontend, fully Dockerized; one script installs everything and serves it on your LAN.
 
+```bash
+git clone https://github.com/UrazYsl/Budget.git && cd Budget && ./start.sh
+```
+
+The first run creates `.env` and stops so you can set a password and timezone; run `./start.sh` again after editing it. Details in [Quick Start](#quick-start-linuxubuntu).
+
 **Stack:** FastAPI (Python), PostgreSQL, Alpine.js, HTML/CSS, nginx, Docker
 
 ## Status
